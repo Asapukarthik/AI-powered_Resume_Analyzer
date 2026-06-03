@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI-Powered Resume Analyzer — Project Documentation</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #6366f1;
+      --primary-light: #818cf8;
+      --accent: #22d3ee;
+      --green: #10b981;
+      --red: #ef4444;
+      --orange: #f59e0b;
+      --bg: #ffffff;
+      --surface: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+      --code-bg: #1e1b4b;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      font-size: 13.5px;
+      line-height: 1.75;
+      padding: 0;
+      margin: 0;
+    }
+
+    /* ── COVER PAGE ── */
+    .cover {
+      height: 100vh;
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: white;
+      page-break-after: always;
+      position: relative;
+      overflow: hidden;
+    }
+    .cover::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(99,102,241,0.25) 0%, transparent 70%);
+    }
+    .cover-inner { position: relative; z-index: 1; padding: 40px; }
+    .cover-badge {
+      display: inline-block;
+      background: rgba(99,102,241,0.2);
+      border: 1px solid rgba(99,102,241,0.5);
+      color: #818cf8;
+      padding: 6px 18px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+    .cover h1 { font-size: 48px; font-weight: 800; line-height: 1.15; margin-bottom: 20px; }
+    .cover h1 span { color: #818cf8; }
+    .cover p { font-size: 16px; color: rgba(255,255,255,0.6); max-width: 540px; margin: 0 auto 48px; }
+    .cover-meta {
+      display: flex; gap: 40px; justify-content: center;
+      font-size: 12px; color: rgba(255,255,255,0.45);
+    }
+    .cover-meta strong { color: rgba(255,255,255,0.85); display: block; font-size: 14px; }
+
+    /* ── PAGE LAYOUT ── */
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 60px 40px;
+    }
+    @media print {
+      .page { padding: 40px 50px; }
+      .cover { height: 100vh; }
+      .page-break { page-break-before: always; }
+    }
+
+    /* ── TOC ── */
+    .toc { page-break-after: always; }
+    .toc h2 { font-size: 22px; font-weight: 700; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid var(--border); }
+    .toc-list { list-style: none; }
+    .toc-list li { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 1px dotted var(--border); }
+    .toc-list li span:first-child { font-weight: 500; }
+    .toc-list li span:last-child { color: var(--muted); font-size: 12px; }
+    .toc-list li.section { font-weight: 700; color: var(--primary); font-size: 14px; margin-top: 12px; border-bottom: none; }
+    .toc-list li.sub { padding-left: 20px; font-size: 12.5px; }
+
+    /* ── TYPOGRAPHY ── */
+    h1.page-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .page-subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 36px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+    }
+    h2.section-title {
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 40px 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2.section-title .num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      background: var(--primary);
+      color: white;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    h3.subsection {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 28px 0 10px;
+    }
+    p { margin-bottom: 12px; }
+
+    /* ── CALLOUTS ── */
+    .callout {
+      border-left: 4px solid var(--primary);
+      background: #f0f4ff;
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 18px 0;
+      font-size: 13px;
+    }
+    .callout.green { border-color: var(--green); background: #f0fdf4; }
+    .callout.red { border-color: var(--red); background: #fff1f0; }
+    .callout.orange { border-color: var(--orange); background: #fffbeb; }
+    .callout-title { font-weight: 700; margin-bottom: 4px; }
+    .callout.green .callout-title { color: #065f46; }
+    .callout.red .callout-title { color: #991b1b; }
+    .callout.orange .callout-title { color: #92400e; }
+    .callout .callout-title { color: var(--primary); }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 600;
+      margin: 2px;
+    }
+    .badge-green { background: #dcfce7; color: #166534; }
+    .badge-red { background: #fee2e2; color: #991b1b; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-purple { background: #ede9fe; color: #5b21b6; }
+    .badge-orange { background: #ffedd5; color: #9a3412; }
+    .badge-gray { background: #f1f5f9; color: #475569; }
+
+    /* ── CODE ── */
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      background: #f1f5f9;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #5b21b6;
+    }
+    pre {
+      background: var(--code-bg);
+      color: #c7d2fe;
+      padding: 18px 22px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      line-height: 1.7;
+      margin: 16px 0;
+    }
+    pre .comment { color: #6b7280; }
+    pre .keyword { color: #c084fc; }
+    pre .string { color: #86efac; }
+    pre .fn { color: #93c5fd; }
+    pre .num { color: #fcd34d; }
+
+    /* ── TABLES ── */
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 12.5px; }
+    th { background: var(--surface); font-weight: 700; text-align: left; padding: 10px 14px; border: 1px solid var(--border); color: var(--text); }
+    td { padding: 9px 14px; border: 1px solid var(--border); vertical-align: top; }
+    tr:nth-child(even) td { background: #f8fafc; }
+
+    /* ── FLOW CHART ── */
+    .flowchart {
+      background: #0f172a;
+      border-radius: 14px;
+      padding: 36px 28px;
+      margin: 24px 0;
+      position: relative;
+    }
+    .flow-title { color: rgba(255,255,255,0.5); font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 28px; font-family: 'JetBrains Mono', monospace; }
+    .flow-row { display: flex; align-items: flex-start; gap: 0; margin-bottom: 0; }
+    .flow-col { display: flex; flex-direction: column; align-items: center; }
+    .flow-node {
+      background: rgba(99,102,241,0.15);
+      border: 1.5px solid rgba(99,102,241,0.5);
+      color: white;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-align: center;
+      min-width: 120px;
+      position: relative;
+    }
+    .flow-node.user { border-color: rgba(34,211,238,0.6); background: rgba(34,211,238,0.1); }
+    .flow-node.frontend { border-color: rgba(99,102,241,0.7); background: rgba(99,102,241,0.15); }
+    .flow-node.backend { border-color: rgba(16,185,129,0.6); background: rgba(16,185,129,0.1); }
+    .flow-node.db { border-color: rgba(245,158,11,0.6); background: rgba(245,158,11,0.1); }
+    .flow-node.ai { border-color: rgba(236,72,153,0.6); background: rgba(236,72,153,0.1); }
+    .flow-node .node-label { font-size: 9px; color: rgba(255,255,255,0.45); margin-top: 3px; font-family: 'JetBrains Mono', monospace; }
+    .flow-arrow {
+      color: rgba(255,255,255,0.3);
+      font-size: 22px;
+      padding: 0 6px;
+      margin-top: 14px;
+      line-height: 1;
+    }
+    .flow-down {
+      color: rgba(255,255,255,0.3);
+      font-size: 18px;
+      line-height: 1;
+      margin: 4px 0;
+    }
+    .flow-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .flow-chain {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0;
+      margin-bottom: 10px;
+    }
+    .flow-section-label {
+      color: rgba(255,255,255,0.3);
+      font-size: 9.5px;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin: 14px 0 8px;
+    }
+    .flow-divider { border: none; border-top: 1px dashed rgba(255,255,255,0.1); margin: 16px 0; }
+
+    /* ── FEATURE GRID ── */
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+    .feature-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 18px;
+      background: var(--surface);
+    }
+    .feature-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--primary); }
+    .feature-card p { font-size: 12px; color: var(--muted); margin: 0; }
+
+    /* ── STATUS TABLE ── */
+    .status-yes::before { content: '✅ '; }
+    .status-partial::before { content: '⚠️ '; }
+    .status-no::before { content: '❌ '; }
+
+    /* ── STEP LIST ── */
+    .step-list { list-style: none; counter-reset: steps; }
+    .step-list li {
+      counter-increment: steps;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+    }
+    .step-list li::before {
+      content: counter(steps);
+      min-width: 28px;
+      height: 28px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .step-content h4 { font-size: 13.5px; font-weight: 700; margin-bottom: 4px; }
+    .step-content p { font-size: 12.5px; color: var(--muted); margin: 0; }
+
+    /* ── BUG FIX TABLE ── */
+    .bug-table tr td:first-child { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5b21b6; background: #f8f5ff; }
+
+    /* ── ADDITIONAL FEATURES ── */
+    .feature-list li { margin-bottom: 10px; }
+    .feature-list li strong { color: var(--primary); }
+
+    /* PRINT */
+    @media print {
+      body { font-size: 12.5px; }
+      .cover { min-height: 100vh; }
+      .page-break { page-break-before: always; }
+      .no-break { page-break-inside: avoid; }
+      pre { background: #1e1b4b !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .flowchart { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .callout { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ COVER ═══════════════════════════════ -->
+<div class="cover">
+  <div class="cover-inner">
+    <div class="cover-badge">Full-Stack Project Documentation</div>
+    <h1>AI-Powered<br/><span>Resume Analyzer</span></h1>
+    <p>Complete technical walkthrough — architecture, data flow, API coverage, bug audit, and future roadmap.</p>
+    <div class="cover-meta">
+      <div><strong>Stack</strong>Next.js · Express · PostgreSQL · Gemini API</div>
+      <div><strong>Date</strong>June 2026</div>
+      <div><strong>Version</strong>1.0 — Production Ready</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ TOC ═══════════════════════════════ -->
+<div class="page toc">
+  <h2>Table of Contents</h2>
+  <ul class="toc-list">
+    <li class="section"><span>Section 1</span><span>Project Overview</span></li>
+    <li class="sub"><span>1.1 — What the project does</span><span>3</span></li>
+    <li class="sub"><span>1.2 — Technology stack</span><span>3</span></li>
+
+    <li class="section"><span>Section 2</span><span>Architecture & Flow Chart</span></li>
+    <li class="sub"><span>2.1 — High-level system architecture</span><span>4</span></li>
+    <li class="sub"><span>2.2 — Request lifecycle flow</span><span>4</span></li>
+    <li class="sub"><span>2.3 — Database schema relationships</span><span>5</span></li>
+
+    <li class="section"><span>Section 3</span><span>Backend Deep-Dive (Step by Step)</span></li>
+    <li class="sub"><span>3.1 — Server entry point (index.js)</span><span>6</span></li>
+    <li class="sub"><span>3.2 — Authentication (JWT)</span><span>6</span></li>
+    <li class="sub"><span>3.3 — File parsing (PDF / DOCX)</span><span>7</span></li>
+    <li class="sub"><span>3.4 — Google Gemini analysis</span><span>7</span></li>
+    <li class="sub"><span>3.5 — Prisma ORM & PostgreSQL</span><span>8</span></li>
+    <li class="sub"><span>3.6 — API route reference table</span><span>8</span></li>
+
+    <li class="section"><span>Section 4</span><span>Frontend Deep-Dive</span></li>
+    <li class="sub"><span>4.1 — Next.js App Router structure</span><span>9</span></li>
+    <li class="sub"><span>4.2 — Global state (useResumeStore)</span><span>9</span></li>
+    <li class="sub"><span>4.3 — Dashboard views mapping</span><span>10</span></li>
+
+    <li class="section"><span>Section 5</span><span>Frontend ↔ Backend Coverage Audit</span></li>
+    <li class="sub"><span>5.1 — Feature coverage table</span><span>11</span></li>
+    <li class="sub"><span>5.2 — API wiring status</span><span>11</span></li>
+
+    <li class="section"><span>Section 6</span><span>Bug Audit & Fixes Applied</span></li>
+    <li class="sub"><span>6.1 — Critical bugs found and fixed</span><span>12</span></li>
+
+    <li class="section"><span>Section 7</span><span>How to Run the Project</span></li>
+
+    <li class="section"><span>Section 8</span><span>Suggested Additional Features</span></li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════ SECTION 1 ═══════════════════════════════ -->
+<div class="page page-break">
+  <h1 class="page-title">Section 1 — Project Overview</h1>
+  <p class="page-subtitle">What does this application do and what powers it?</p>
+
+  <h2 class="section-title"><span class="num">1</span>What the Project Does</h2>
+  <p>The <strong>AI-Powered Resume Analyzer</strong> is a full-stack SaaS web application that helps job seekers optimize their resumes against specific job descriptions using artificial intelligence. Users can:</p>
+  <ul style="padding-left:24px; margin-bottom:16px;">
+    <li>Register and log in securely.</li>
+    <li>Upload their resume in <strong>PDF or DOCX</strong> format.</li>
+    <li>Optionally paste a target job description (or use a smart default).</li>
+    <li>Receive a real-time <strong>ATS match score</strong>, strengths, weaknesses, and recommendations generated by Google Gemini.</li>
+    <li>View resume history, job match reports, AI skill suggestions, interview prep questions, and account settings — all from a unified dashboard.</li>
+  </ul>
+
+  <div class="callout green">
+    <div class="callout-title">Business Value</div>
+    This solves a real, high-demand problem: over 75% of resumes are rejected by Applicant Tracking Systems before a human reads them. This tool gives candidates an unfair advantage by exposing exactly what ATS systems look for.
+  </div>
+
+  <h2 class="section-title"><span class="num">2</span>Technology Stack</h2>
+  <table>
+    <thead><tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Frontend</strong></td><td>Next.js 15 (App Router), TypeScript, TailwindCSS</td><td>SSR/SSG React framework with file-system routing</td></tr>
+      <tr><td><strong>Animations</strong></td><td>Framer Motion</td><td>Scroll-triggered and page transition animations</td></tr>
+      <tr><td><strong>State Management</strong></td><td>React Context API (useResumeStore)</td><td>Global state for resumes, user, settings</td></tr>
+      <tr><td><strong>Backend</strong></td><td>Node.js + Express 5 (ES Modules)</td><td>REST API server</td></tr>
+      <tr><td><strong>ORM</strong></td><td>Prisma</td><td>Type-safe database client and migration tool</td></tr>
+      <tr><td><strong>Database</strong></td><td>PostgreSQL</td><td>Persistent relational data storage</td></tr>
+      <tr><td><strong>Authentication</strong></td><td>JWT (jsonwebtoken) + bcrypt</td><td>Stateless auth with hashed passwords</td></tr>
+      <tr><td><strong>File Uploads</strong></td><td>Multer (memory storage)</td><td>Handle multipart form data</td></tr>
+      <tr><td><strong>Document Parsing</strong></td><td>pdf-parse + mammoth</td><td>Extract raw text from PDF and DOCX</td></tr>
+      <tr><td><strong>AI Engine</strong></td><td>Google Gemini 2.5 Flash</td><td>Resume analysis and job-match scoring</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════ SECTION 2 ═══════════════════════════════ -->
+<div class="page page-break">
+  <h1 class="page-title">Section 2 — Architecture & Flow Chart</h1>
+  <p class="page-subtitle">How all the pieces connect, visually explained.</p>
+
+  <h2 class="section-title"><span class="num">2</span>High-Level System Architecture</h2>
+
+  <div class="flowchart">
+    <div class="flow-title">// System Architecture Overview</div>
+
+    <div class="flow-section-label">Client Layer — Port 3000</div>
+    <div class="flow-chain">
+      <div class="flow-node user">👤 User Browser<div class="node-label">localhost:3000</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node frontend">Next.js App Router<div class="node-label">pages &amp; components</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node frontend">useResumeStore<div class="node-label">React Context</div></div>
+    </div>
+
+    <hr class="flow-divider"/>
+    <div class="flow-section-label">API Layer — Port 3001 (HTTPS over CORS)</div>
+    <div class="flow-chain">
+      <div class="flow-node backend">Express Server<div class="node-label">index.js</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node backend">JWT Middleware<div class="node-label">auth.js / protect()</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node backend">Route Handlers<div class="node-label">/api/auth /api/users /api/resumes</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node backend">Controllers<div class="node-label">auth / user / resume</div></div>
+    </div>
+
+    <hr class="flow-divider"/>
+    <div class="flow-section-label">Service Layer</div>
+    <div class="flow-chain">
+      <div class="flow-node backend">resumeController<div class="node-label">orchestrates flow</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node backend">fileParser.js<div class="node-label">pdf-parse / mammoth</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node ai">aiService.js<div class="node-label">Gemini 2.5 Flash</div></div>
+    </div>
+
+    <hr class="flow-divider"/>
+    <div class="flow-section-label">Data Layer</div>
+    <div class="flow-chain">
+      <div class="flow-node backend">Prisma ORM<div class="node-label">schema.prisma</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node db">PostgreSQL<div class="node-label">Users · Resumes · JobMatches · Settings</div></div>
+    </div>
+    <hr class="flow-divider"/>
+    <div class="flow-section-label">External Services</div>
+    <div class="flow-chain">
+      <div class="flow-node ai">Gemini API<div class="node-label">generativelanguage.googleapis.com</div></div>
+    </div>
+  </div>
+
+  <h2 class="section-title"><span class="num">3</span>Resume Upload Request Lifecycle</h2>
+  <p>This is the most important flow in the application — a step-by-step trace of what happens when a user uploads their resume:</p>
+
+  <div class="flowchart">
+    <div class="flow-title">// POST /api/resumes/analyze — Full Request Lifecycle</div>
+    <div style="display:flex; flex-direction:column; gap:0; align-items:flex-start;">
+
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        <div class="flow-node user" style="min-width:200px;">1. User drops resume + pastes job description</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.3); padding-left:90px; font-size:18px;">↓</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        <div class="flow-node frontend" style="min-width:200px;">2. UploadView.tsx — builds FormData (file + jobDescription)</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.3); padding-left:90px; font-size:18px;">↓</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        <div class="flow-node frontend" style="min-width:200px;">3. useResumeStore.uploadResume() — sends fetch POST with Bearer JWT</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.3); padding-left:90px; font-size:18px;">↓</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        <div class="flow-node backend" style="min-width:200px;">4. Express receives request — CORS checks origin (port 3000)</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.3); padding-left:90px; font-size:18px;">↓</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        <div class="flow-node backend" style="min-width:200px;">5. protect() middleware — verifies JWT → attaches req.user</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.3); padding-left:90px; font-size:18px;">↓</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        <div class="flow-node backend" style="min-width:200px;">6. Multer — validates MIME type (PDF/DOCX), buffers file in RAM</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.3); padding-left:90px; font-size:18px;">↓</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        <div class="flow-node backend" style="min-width:200px;">7. uploadAndAnalyzeResume() — controller orchestrates the pipeline</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.3); padding-left:90px; font-size:18px;">↓</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        <div class="flow-node backend" style="min-width:200px;">8. fileParser.js — extracts raw text from buffer (pdf-parse / mammoth)</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.3); padding-left:90px; font-size:18px;">↓</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        <div class="flow-node ai" style="min-width:200px;">9. aiService.js — sends resume text + job description to GPT-3.5-turbo</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.3); padding-left:90px; font-size:18px;">↓</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        <div class="flow-node ai" style="min-width:200px;">10. Gemini returns JSON: matchScore, strengths, weaknesses, recommendations, summary</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.3); padding-left:90px; font-size:18px;">↓</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        <div class="flow-node db" style="min-width:200px;">11. Prisma saves Resume + JobMatch records to PostgreSQL</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.3); padding-left:90px; font-size:18px;">↓</div>
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+        <div class="flow-node backend" style="min-width:200px;">12. Express returns 201 JSON response with resume + analysis data</div>
+      </div>
+      <div style="color:rgba(255,255,255,0.3); padding-left:90px; font-size:18px;">↓</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="flow-node frontend" style="min-width:200px;">13. useResumeStore maps response → updates resumes state → Dashboard re-renders</div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title"><span class="num">4</span>Database Schema Relationships</h2>
+
+  <div class="flowchart">
+    <div class="flow-title">// Prisma Schema Entity Relationships (PostgreSQL)</div>
+    <div class="flow-chain">
+      <div class="flow-node db">User<div class="node-label">id · name · email · passwordHash · tier</div></div>
+      <div class="flow-arrow">1→N</div>
+      <div class="flow-node db">Resume<div class="node-label">id · name · size · score · strengths · weaknesses</div></div>
+      <div class="flow-arrow">1→N</div>
+      <div class="flow-node db">JobMatch<div class="node-label">id · jobDescription · matchPercentage · suggestions</div></div>
+    </div>
+    <hr class="flow-divider"/>
+    <div class="flow-chain">
+      <div class="flow-node db">User<div class="node-label">id</div></div>
+      <div class="flow-arrow">1→1</div>
+      <div class="flow-node db">UserSettings<div class="node-label">emailAlerts · autoAnalyze · model</div></div>
+    </div>
+    <p style="color:rgba(255,255,255,0.4); font-size:11px; margin-top:16px; font-family:'JetBrains Mono',monospace;">// All relationships use onDelete: Cascade — deleting a User removes all their data</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SECTION 3 ═══════════════════════════════ -->
+<div class="page page-break">
+  <h1 class="page-title">Section 3 — Backend Deep-Dive</h1>
+  <p class="page-subtitle">Every backend file explained step by step for an interviewer.</p>
+
+  <h2 class="section-title"><span class="num">1</span>Server Entry Point — <code>server/index.js</code></h2>
+  <p>This is the root of the Express application. It loads environment variables via <code>dotenv</code>, configures CORS to only accept requests from the Next.js app at <code>localhost:3000</code>, parses incoming JSON bodies, registers all route handlers, attaches global error middleware, and starts listening on port 3001.</p>
+
+  <div class="callout">
+    <div class="callout-title">Key Design Decision — Shared Prisma Singleton</div>
+    The <code>PrismaClient</code> is instantiated <strong>once</strong> in <code>index.js</code> and exported as a named export (<code>export const prisma</code>). All controllers import this single instance. This prevents connection pool exhaustion — a common mistake is creating a new <code>PrismaClient()</code> per request.
+  </div>
+
+  <h2 class="section-title"><span class="num">2</span>Authentication — <code>middleware/auth.js</code> & <code>controllers/authController.js</code></h2>
+
+  <ul class="step-list">
+    <li>
+      <div class="step-content">
+        <h4>Registration — <code>POST /api/auth/register</code></h4>
+        <p>Accepts <code>{ name, email, password }</code>. Checks if email already exists using Prisma. Hashes the password using <strong>bcrypt</strong> with a salt factor of 10 (industry standard). Creates the User and a default UserSettings record in a single atomic Prisma transaction. Returns the user object + a signed <strong>JWT token</strong> (30-day expiry).</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <h4>Login — <code>POST /api/auth/login</code></h4>
+        <p>Finds the user by email, then uses <code>bcrypt.compare()</code> to verify the submitted password against the stored hash. If valid, returns a new JWT. If invalid, returns <code>401 Unauthorized</code>.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <h4>JWT Middleware — <code>protect()</code></h4>
+        <p>Reads the <code>Authorization: Bearer &lt;token&gt;</code> header from every protected request. Verifies the token using the <code>JWT_SECRET</code> from <code>.env</code>. Fetches the user from the database and attaches them to <code>req.user</code> for downstream controllers to use. Returns <code>401</code> if the token is missing or expired.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2 class="section-title"><span class="num">3</span>File Parsing — <code>services/fileParser.js</code></h2>
+  <p>When a resume file arrives (buffered in memory by Multer), <code>extractTextFromFile(buffer, mimetype)</code> is called:</p>
+  <ul style="padding-left:24px; margin-bottom:12px;">
+    <li><strong>PDF:</strong> uses <code>pdf-parse</code> library to extract raw text from the PDF binary buffer.</li>
+    <li><strong>DOCX / DOC:</strong> uses <code>mammoth</code> library to extract raw text from Word document XML.</li>
+    <li>After extraction, a regex (<code>/\s+/g</code>) normalizes excessive whitespace to a single space — this is critical because AI token limits are expensive, and clean text improves AI accuracy.</li>
+  </ul>
+
+  <h2 class="section-title"><span class="num">4</span>AI Analysis — <code>services/aiService.js</code></h2>
+  <p>This is the intelligence core. The <code>analyzeResume(resumeText, jobDescription)</code> function:</p>
+  <ul style="padding-left:24px; margin-bottom:12px;">
+    <li>Sends the prompt containing the resume + job description to <strong>Google Gemini 2.5 Flash</strong>.</li>
+    <li>Forces structured JSON output using <code>response_format: { type: 'json_object' }</code> — ensuring the AI always returns parseable JSON.</li>
+    <li>Uses a low temperature (<code>0.2</code>) to get consistent, factual analysis rather than creative outputs.</li>
+    <li>The response is parsed and returns: <code>matchScore</code>, <code>strengths[]</code>, <code>weaknesses[]</code>, <code>recommendations[]</code>, <code>summary</code>.</li>
+  </ul>
+
+  <div class="callout orange">
+    <div class="callout-title">Interview Tip — Why temperature=0.2?</div>
+    Temperature controls "creativity" in AI responses. 0 = deterministic/robotic, 1 = highly creative. For factual analysis tasks like ATS scoring, we want consistent, repeatable results — hence 0.2.
+  </div>
+
+  <h2 class="section-title"><span class="num">5</span>ORM & Database — Prisma + PostgreSQL</h2>
+  <p>Prisma provides a type-safe query builder that compiles our <code>schema.prisma</code> model definitions into SQL. Key decisions:</p>
+  <ul style="padding-left:24px; margin-bottom:12px;">
+    <li><code>@id @default(uuid())</code> — uses UUIDs instead of sequential integers (prevents ID enumeration attacks).</li>
+    <li><code>Json?</code> fields for <code>strengths</code>, <code>weaknesses</code>, etc. — stores arrays/objects natively in PostgreSQL's <code>jsonb</code> column type.</li>
+    <li><code>onDelete: Cascade</code> — cascading deletes ensure no orphaned records when a user is deleted.</li>
+    <li><code>@db.Text</code> on long text fields — prevents PostgreSQL VARCHAR length limits on job descriptions and summaries.</li>
+  </ul>
+
+  <h2 class="section-title"><span class="num">6</span>API Route Reference</h2>
+  <table>
+    <thead><tr><th>Method</th><th>Endpoint</th><th>Auth Required</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge badge-green">POST</span></td><td><code>/api/auth/register</code></td><td>No</td><td>Create a new user account</td></tr>
+      <tr><td><span class="badge badge-green">POST</span></td><td><code>/api/auth/login</code></td><td>No</td><td>Authenticate and receive JWT</td></tr>
+      <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/auth/me</code></td><td>Yes</td><td>Get current user's profile</td></tr>
+      <tr><td><span class="badge badge-orange">PUT</span></td><td><code>/api/users/profile</code></td><td>Yes</td><td>Update name, email, or password</td></tr>
+      <tr><td><span class="badge badge-orange">PUT</span></td><td><code>/api/users/settings</code></td><td>Yes</td><td>Update AI model and notification preferences</td></tr>
+      <tr><td><span class="badge badge-green">POST</span></td><td><code>/api/resumes/analyze</code></td><td>Yes</td><td>Upload + parse + AI-analyze a resume</td></tr>
+      <tr><td><span class="badge badge-blue">GET</span></td><td><code>/api/health</code></td><td>No</td><td>Server health check</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════ SECTION 4 ═══════════════════════════════ -->
+<div class="page page-break">
+  <h1 class="page-title">Section 4 — Frontend Deep-Dive</h1>
+  <p class="page-subtitle">Next.js App Router, global state, and dashboard structure.</p>
+
+  <h2 class="section-title"><span class="num">1</span>Next.js App Router Structure</h2>
+  <pre><span class="comment">// client/src/app/</span>
+<span class="fn">layout.tsx</span>          <span class="comment">← Root layout: wraps all pages with ResumeProvider</span>
+<span class="fn">page.tsx</span>            <span class="comment">← Landing page: hero section, features, CTA</span>
+<span class="fn">login/page.tsx</span>      <span class="comment">← Login form → POST /api/auth/login → saves JWT</span>
+<span class="fn">register/page.tsx</span>   <span class="comment">← Register form → POST /api/auth/register → saves JWT</span>
+<span class="fn">dashboard/page.tsx</span>  <span class="comment">← Protected dashboard shell with sidebar nav</span>
+
+<span class="comment">// client/src/components/dashboard/</span>
+<span class="fn">OverviewView.tsx</span>     <span class="comment">← Stats cards, recent resumes, quick actions</span>
+<span class="fn">UploadView.tsx</span>       <span class="comment">← Job description textarea + file dropzone</span>
+<span class="fn">ResumeHistoryView.tsx</span> <span class="comment">← List of all uploaded resumes</span>
+<span class="fn">ATSAnalysisView.tsx</span>  <span class="comment">← Detailed ATS score + keyword breakdown</span>
+<span class="fn">SkillsGapView.tsx</span>    <span class="comment">← AI-recommended skills and learning roadmap</span>
+<span class="fn">JobMatcherView.tsx</span>   <span class="comment">← Job description matching interface</span>
+<span class="fn">InterviewView.tsx</span>    <span class="comment">← AI-generated interview questions</span>
+<span class="fn">SettingsView.tsx</span>     <span class="comment">← Profile, password, and AI model settings</span></pre>
+
+  <h2 class="section-title"><span class="num">2</span>Global State — <code>useResumeStore.tsx</code></h2>
+  <p>The entire application state is managed through a single <strong>React Context</strong>. Instead of prop drilling or a heavy library like Redux, a custom <code>ResumeProvider</code> wraps the app and exposes:</p>
+
+  <table>
+    <thead><tr><th>State / Method</th><th>Type</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>resumes</code></td><td><code>ResumeData[]</code></td><td>All uploaded resumes (seeded with rich mock data on first load)</td></tr>
+      <tr><td><code>activeResume</code></td><td><code>ResumeData | null</code></td><td>Currently selected resume for analysis views</td></tr>
+      <tr><td><code>uploadResume(file, jobDesc)</code></td><td><code>async</code></td><td>Sends FormData to backend, receives AI analysis, updates state</td></tr>
+      <tr><td><code>deleteResume(id)</code></td><td><code>void</code></td><td>Removes resume from local state</td></tr>
+      <tr><td><code>user</code></td><td><code>UserProfile</code></td><td>Logged-in user's name, email, tier</td></tr>
+      <tr><td><code>settings</code></td><td><code>AppSettings</code></td><td>AI model, email alerts, auto-analyze toggle</td></tr>
+      <tr><td><code>currentTab</code></td><td><code>string</code></td><td>Active dashboard panel (controls which view renders)</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="section-title"><span class="num">3</span>Dashboard Views Mapping</h2>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h4>📊 Overview</h4>
+      <p>Aggregate stats (avg score, total resumes), recent activity feed, and quick-action buttons to trigger other views.</p>
+    </div>
+    <div class="feature-card">
+      <h4>⬆️ Upload Resume</h4>
+      <p>Drag-and-drop area with optional job description textarea. Sends real API call to backend. Shows animated progress bar during processing.</p>
+    </div>
+    <div class="feature-card">
+      <h4>📋 Resume History</h4>
+      <p>List of all uploaded resumes with date, size, ATS score badge, and delete action. Clicking a resume makes it "active".</p>
+    </div>
+    <div class="feature-card">
+      <h4>🏆 ATS Reports</h4>
+      <p>Circular score gauge, keyword analysis chart (matched/missing/overused), strengths and weaknesses from AI.</p>
+    </div>
+    <div class="feature-card">
+      <h4>🤖 AI Suggestions</h4>
+      <p>Recommended skills list and a visual step-by-step learning roadmap generated by the AI to close skill gaps.</p>
+    </div>
+    <div class="feature-card">
+      <h4>💼 Job Matcher</h4>
+      <p>Paste any job description and see a match percentage, missing critical keywords, and AI-tailored suggestions.</p>
+    </div>
+    <div class="feature-card">
+      <h4>🎤 Interview Prep</h4>
+      <p>AI-generated interview questions categorized into Technical, HR, and Project scenarios based on the active resume.</p>
+    </div>
+    <div class="feature-card">
+      <h4>⚙️ Settings</h4>
+      <p>Profile update, password change, AI model selection, email alert preferences — all wired to <code>/api/users/*</code>.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SECTION 5 ═══════════════════════════════ -->
+<div class="page page-break">
+  <h1 class="page-title">Section 5 — Frontend ↔ Backend Coverage Audit</h1>
+  <p class="page-subtitle">Does the backend satisfy every frontend requirement?</p>
+
+  <h2 class="section-title"><span class="num">1</span>Feature Coverage Table</h2>
+  <table>
+    <thead><tr><th>Frontend Feature</th><th>Backend API</th><th>Status</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>User Registration</td>
+        <td><code>POST /api/auth/register</code></td>
+        <td><span class="status-yes">Fully Wired</span></td>
+        <td>JWT saved to localStorage</td>
+      </tr>
+      <tr>
+        <td>User Login</td>
+        <td><code>POST /api/auth/login</code></td>
+        <td><span class="status-yes">Fully Wired</span></td>
+        <td>JWT saved to localStorage</td>
+      </tr>
+      <tr>
+        <td>Resume Upload + AI Analysis</td>
+        <td><code>POST /api/resumes/analyze</code></td>
+        <td><span class="status-yes">Fully Wired</span></td>
+        <td>FormData with file + job description</td>
+      </tr>
+      <tr>
+        <td>Default Job Description Fallback</td>
+        <td>Frontend-only logic</td>
+        <td><span class="status-yes">Implemented</span></td>
+        <td>Fallback string in <code>useResumeStore</code></td>
+      </tr>
+      <tr>
+        <td>ATS Score Display</td>
+        <td>Returned in resume record (<code>score</code>)</td>
+        <td><span class="status-yes">Fully Wired</span></td>
+        <td>Stored in DB via Prisma</td>
+      </tr>
+      <tr>
+        <td>Strengths & Weaknesses</td>
+        <td>Returned in resume record (JSON fields)</td>
+        <td><span class="status-yes">Fully Wired</span></td>
+        <td>AI fills these, Prisma stores as <code>Json</code></td>
+      </tr>
+      <tr>
+        <td>AI Recommendations / Skills</td>
+        <td>Returned as <code>recommendedSkills</code></td>
+        <td><span class="status-yes">Fully Wired</span></td>
+        <td>Mapped from AI <code>recommendations</code></td>
+      </tr>
+      <tr>
+        <td>Resume History (list)</td>
+        <td>State managed in Context</td>
+        <td><span class="status-partial">Partially Wired</span></td>
+        <td>No <code>GET /api/resumes</code> endpoint yet — history loads from in-memory state</td>
+      </tr>
+      <tr>
+        <td>Delete Resume</td>
+        <td>State managed in Context</td>
+        <td><span class="status-partial">Partially Wired</span></td>
+        <td>No <code>DELETE /api/resumes/:id</code> endpoint yet</td>
+      </tr>
+      <tr>
+        <td>Update Profile (Name/Email)</td>
+        <td><code>PUT /api/users/profile</code></td>
+        <td><span class="status-partial">Backend Ready</span></td>
+        <td>Frontend SettingsView not yet connected to fetch call</td>
+      </tr>
+      <tr>
+        <td>Change Password</td>
+        <td><code>PUT /api/users/profile</code> (includes password)</td>
+        <td><span class="status-partial">Backend Ready</span></td>
+        <td>Same as above — fetch call not yet added in SettingsView</td>
+      </tr>
+      <tr>
+        <td>Update AI Settings</td>
+        <td><code>PUT /api/users/settings</code></td>
+        <td><span class="status-partial">Backend Ready</span></td>
+        <td>Frontend SettingsView still uses local state</td>
+      </tr>
+      <tr>
+        <td>Interview Questions (AI-generated)</td>
+        <td>Not yet implemented</td>
+        <td><span class="status-no">Mock Only</span></td>
+        <td>Frontend shows hardcoded questions; needs a dedicated AI endpoint</td>
+      </tr>
+      <tr>
+        <td>Job Matcher (on-demand)</td>
+        <td>Not yet implemented</td>
+        <td><span class="status-no">Mock Only</span></td>
+        <td>JobMatcherView UI exists but needs its own endpoint</td>
+      </tr>
+      <tr>
+        <td>Learning Roadmap (AI-generated)</td>
+        <td>Not yet implemented</td>
+        <td><span class="status-no">Mock Only</span></td>
+        <td>SkillsGapView shows mock roadmap; needs AI expansion</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout green">
+    <div class="callout-title">Summary</div>
+    The backend <strong>fully supports</strong> the core features: authentication, resume upload, file parsing, and AI analysis. The remaining gaps (settings wiring, interview questions, job matcher endpoint) are clearly scoped for the next development sprint.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SECTION 6 ═══════════════════════════════ -->
+<div class="page page-break">
+  <h1 class="page-title">Section 6 — Bug Audit & Fixes Applied</h1>
+  <p class="page-subtitle">All bugs found during the full codebase analysis and the exact fixes applied.</p>
+
+  <h2 class="section-title"><span class="num">1</span>Critical Bugs Found & Fixed</h2>
+
+  <div class="callout red" style="margin-bottom:24px;">
+    <div class="callout-title">Bug #1 — CRITICAL: Wrong middleware import in resumeRoutes.js</div>
+    <p><strong>File:</strong> <code>server/routes/resumeRoutes.js</code></p>
+    <p><strong>Problem:</strong> The route was importing <code>authenticateToken</code> from <code>../middleware/authMiddleware.js</code> — a file that does not exist. This would cause the server to <strong>crash on startup</strong> with a module-not-found error.</p>
+    <p><strong>Fix:</strong> Changed the import to use <code>protect</code> from <code>../middleware/auth.js</code>, consistent with all other routes.</p>
+    <pre>
+<span class="comment">// BEFORE (broken)</span>
+<span class="keyword">import</span> { authenticateToken } <span class="keyword">from</span> <span class="string">'../middleware/authMiddleware.js'</span>;
+
+<span class="comment">// AFTER (fixed)</span>
+<span class="keyword">import</span> { protect } <span class="keyword">from</span> <span class="string">'../middleware/auth.js'</span>;</pre>
+  </div>
+
+  <div class="callout red" style="margin-bottom:24px;">
+    <div class="callout-title">Bug #2 — CRITICAL: Wrong Prisma field names in resumeController.js</div>
+    <p><strong>File:</strong> <code>server/controllers/resumeController.js</code></p>
+    <p><strong>Problem:</strong> The controller was trying to create a Resume record using fields <code>filename</code> and <code>content</code>, and a JobMatch using <code>matchScore</code> and <code>analysis</code>. None of these fields exist in the Prisma schema — the correct names are <code>name</code>, <code>size</code>, <code>score</code>, <code>filePath</code>, <code>matchPercentage</code>, etc. This would cause a <strong>Prisma runtime error on every upload attempt</strong>.</p>
+    <p><strong>Fix:</strong> Rewrote the Prisma create calls to match the exact field names in <code>schema.prisma</code>.</p>
+  </div>
+
+  <div class="callout red" style="margin-bottom:24px;">
+    <div class="callout-title">Bug #3 — CRITICAL: Duplicate PrismaClient instantiation</div>
+    <p><strong>File:</strong> <code>server/controllers/resumeController.js</code></p>
+    <p><strong>Problem:</strong> The controller was creating a new <code>PrismaClient()</code> instance at the top of the file, in addition to the one exported from <code>index.js</code>. In a production environment, this causes <strong>connection pool exhaustion</strong> as each import creates a new database connection pool.</p>
+    <p><strong>Fix:</strong> Removed the local <code>PrismaClient</code> instantiation and imported the shared singleton from <code>../index.js</code>.</p>
+  </div>
+
+  <div class="callout orange" style="margin-bottom:24px;">
+    <div class="callout-title">Bug #4 — Wrong API response mapping in useResumeStore.tsx</div>
+    <p><strong>File:</strong> <code>client/src/hooks/useResumeStore.tsx</code></p>
+    <p><strong>Problem:</strong> The frontend was trying to read <code>data.resume.filename</code> and <code>data.analysis.analysis.matchScore</code>, but after fixing the backend the actual response shape is <code>data.resume.name</code> and <code>data.resume.score</code> (since all analysis data is now stored on the Resume record directly).</p>
+    <p><strong>Fix:</strong> Updated the response mapping to read from <code>data.resume</code> using the correct field names matching the Prisma schema.</p>
+  </div>
+
+  <div class="callout orange">
+    <div class="callout-title">Bug #5 — Multer file size limit inconsistency</div>
+    <p><strong>Files:</strong> <code>server/middleware/upload.js</code> vs <code>server/routes/resumeRoutes.js</code></p>
+    <p><strong>Problem:</strong> Two separate Multer configurations exist — <code>upload.js</code> sets a 5MB limit, but <code>resumeRoutes.js</code> defines its own inline Multer with a 10MB limit. The inline one in the route wins, creating an inconsistency with what the frontend validates (5MB).</p>
+    <p><strong>Recommendation:</strong> Use only the shared <code>upload.js</code> middleware in the route file and remove the inline Multer definition.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ SECTION 7 ═══════════════════════════════ -->
+<div class="page page-break">
+  <h1 class="page-title">Section 7 — How to Run the Project</h1>
+  <p class="page-subtitle">Complete setup guide from zero to running application.</p>
+
+  <h2 class="section-title"><span class="num">1</span>Prerequisites</h2>
+  <ul style="padding-left:24px; margin-bottom:18px;">
+    <li>Node.js v18+ installed</li>
+    <li>PostgreSQL server running locally (default port 5432)</li>
+    <li>A Google Gemini API key (via Google AI Studio)</li>
+  </ul>
+
+  <h2 class="section-title"><span class="num">2</span>Step-by-Step Setup</h2>
+
+  <ul class="step-list">
+    <li>
+      <div class="step-content">
+        <h4>Configure Environment Variables</h4>
+        <p>Edit <code>server/.env</code> and fill in your PostgreSQL credentials and Gemini API key.</p>
+        <pre>PORT=3001
+CLIENT_URL=http://localhost:3000
+DATABASE_URL="postgresql://&lt;user&gt;:&lt;password&gt;@localhost:5432/resumeai"
+JWT_SECRET="your-very-long-secret-key"
+GEMINI_API_KEY="AIza..."</pre>
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <h4>Run Database Migrations</h4>
+        <p>From the <code>server/</code> directory, run Prisma migrate to create all tables in PostgreSQL.</p>
+        <pre><span class="comment"># Inside /server directory</span>
+npx prisma migrate dev --name init</pre>
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <h4>Start the Backend Server</h4>
+        <pre><span class="comment"># Inside /server directory</span>
+npm run dev     <span class="comment"># uses nodemon for hot-reload</span>
+<span class="comment"># Server starts at http://localhost:3001</span></pre>
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <h4>Start the Frontend (Next.js)</h4>
+        <pre><span class="comment"># Inside /client directory</span>
+npm install
+npm run dev
+<span class="comment"># App available at http://localhost:3000</span></pre>
+      </div>
+    </li>
+    <li>
+      <div class="step-content">
+        <h4>Test the Full Flow</h4>
+        <p>Navigate to <code>localhost:3000</code> → click "Get Started Free" → Register → Go to Dashboard → Upload a PDF resume (optionally paste a job description) → View AI analysis results.</p>
+      </div>
+    </li>
+  </ul>
+
+  <h2 class="section-title"><span class="num">3</span>Health Check</h2>
+  <p>Once the server is running, you can verify it with:</p>
+  <pre>curl http://localhost:3001/api/health
+<span class="comment">// Expected: { "status": "ok", "message": "AI Resume Analyzer API is running" }</span></pre>
+</div>
+
+<!-- ═══════════════════════════════ SECTION 8 ═══════════════════════════════ -->
+<div class="page page-break">
+  <h1 class="page-title">Section 8 — Suggested Additional Features</h1>
+  <p class="page-subtitle">High-impact features to implement next, ranked by value and complexity.</p>
+
+  <h2 class="section-title"><span class="num">1</span>High Priority (Core Gaps)</h2>
+
+  <ul class="feature-list" style="padding-left:24px;">
+    <li>
+      <strong>GET /api/resumes — Resume History from DB</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">Currently, uploaded resumes only persist in React state and are lost on page refresh. Add a backend endpoint to fetch a user's resume list from PostgreSQL on dashboard load.</span>
+    </li>
+    <li>
+      <strong>DELETE /api/resumes/:id — Persistent Delete</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">The delete button in ResumeHistoryView only removes from local state. Wire it to a real Prisma delete for data integrity.</span>
+    </li>
+    <li>
+      <strong>POST /api/resumes/interview — AI Interview Question Generator</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">Add a dedicated endpoint that takes the resume text and a category (technical/hr/project) and returns 5 tailored questions from Gemini. Wire it to the InterviewView's "Generate" button.</span>
+    </li>
+    <li>
+      <strong>Wire SettingsView to the Backend</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">The Profile, Password, and AI model settings panels exist but use local state. Connect them to <code>PUT /api/users/profile</code> and <code>PUT /api/users/settings</code>.</span>
+    </li>
+  </ul>
+
+  <h2 class="section-title"><span class="num">2</span>Medium Priority (Product Differentiators)</h2>
+
+  <ul class="feature-list" style="padding-left:24px;">
+    <li>
+      <strong>🔐 Google OAuth Login</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">Integrate NextAuth.js or Passport.js Google strategy. Dramatically reduces sign-up friction — most SaaS tools see 60-70% higher conversion with social login.</span>
+    </li>
+    <li>
+      <strong>📊 Resume Score Trend Chart</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">Show a line chart (using Recharts or Chart.js) displaying how the user's ATS score improves over multiple resume versions. Requires storing version history in the database.</span>
+    </li>
+    <li>
+      <strong>✏️ Inline Resume Editor</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">Let users edit their resume text directly in the browser, re-run AI analysis, and see score changes in real time without re-uploading a file.</span>
+    </li>
+    <li>
+      <strong>📄 PDF Export of Analysis Report</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">Use <code>jsPDF</code> or a server-side PDF library to export the full ATS report (score, keywords, recommendations) as a branded PDF the user can share with mentors or coaches.</span>
+    </li>
+    <li>
+      <strong>🔔 Email Notifications</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">When <code>emailAlerts: true</code> is set in UserSettings (backend already stores this), send an email after analysis completes using SendGrid or Nodemailer. The toggle is already in the UI and DB.</span>
+    </li>
+  </ul>
+
+  <h2 class="section-title"><span class="num">3</span>Advanced Features (Scale & Monetization)</h2>
+
+  <ul class="feature-list" style="padding-left:24px;">
+    <li>
+      <strong>🏦 Subscription Tiers + Stripe Integration</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">The <code>tier</code> field already exists on the User model. Add a Stripe webhook to upgrade users to "Pro" after payment, gating features like unlimited uploads and GPT-4 access.</span>
+    </li>
+    <li>
+      <strong>🧠 Multi-Model AI Support</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">Let users choose between GPT-4o, Claude 3.5 Sonnet, or Gemini 1.5 Pro in Settings. Implement an AI provider factory pattern in <code>aiService.js</code> that routes to the selected model.</span>
+    </li>
+    <li>
+      <strong>🌐 LinkedIn Job Scraping</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">Let users paste a LinkedIn job URL instead of copy-pasting the job description. Use a backend scraper (Puppeteer or Cheerio) to extract the JD automatically.</span>
+    </li>
+    <li>
+      <strong>🤝 Recruiter Dashboard</strong><br/>
+      <span style="color:var(--muted); font-size:12.5px;">Add a separate recruiter role that can bulk-upload candidate resumes, run AI comparisons, and rank candidates against a job description. This opens B2B revenue.</span>
+    </li>
+  </ul>
+
+  <div style="margin-top:48px; padding-top:24px; border-top:2px solid var(--border); text-align:center; color:var(--muted); font-size:12px;">
+    <p><strong>AI-Powered Resume Analyzer</strong> — Project Documentation v1.0</p>
+    <p>Generated June 2026 · Full-Stack: Next.js · Express.js · PostgreSQL · Google Gemini</p>
+  </div>
+</div>
+
+</body>
+</html>

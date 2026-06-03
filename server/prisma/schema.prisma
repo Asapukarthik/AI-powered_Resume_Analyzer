@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(uuid())
+  name         String
+  email        String         @unique
+  passwordHash String
+  tier         String         @default("free")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  settings     UserSettings?
+  resumes      Resume[]
+  jobMatches   JobMatch[]
+}
+
+model UserSettings {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  emailAlerts Boolean  @default(false)
+  autoAnalyze Boolean  @default(true)
+  model       String   @default("openai")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Resume {
+  id                   String     @id @default(uuid())
+  userId               String
+  name                 String
+  size                 Int
+  date                 DateTime   @default(now())
+  score                Int
+  skillsMatch          Int
+  matchedKeywordsCount Int
+  missingKeywordsCount Int
+  summary              String?    @db.Text
+  strengths            Json?
+  weaknesses           Json?
+  keywords             Json?
+  recommendedSkills    Json?
+  suggestedRoadmap     Json?
+  interviewQuestions   Json?
+  filePath             String
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime   @updatedAt
+
+  user                 User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobMatches           JobMatch[]
+}
+
+model JobMatch {
+  id              String   @id @default(uuid())
+  userId          String
+  resumeId        String
+  jobDescription  String   @db.Text
+  matchPercentage Int
+  missingSkills   Json?
+  matchedKeywords Json?
+  suggestions     Json?
+  createdAt       DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume          Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}

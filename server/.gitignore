@@ -1,0 +1,21 @@
+# dependencies
+node_modules
+
+# next
+.next
+
+# environment
+.env
+
+# logs
+npm-debug.log*
+
+# build
+dist
+build
+
+# uploads
+uploads
+
+# OS
+.DS_Store
