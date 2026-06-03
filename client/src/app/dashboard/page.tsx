@@ -39,18 +39,61 @@ import {
 
 export default function DashboardPage() {
     const router = useRouter();
-    const { 
-        currentTab, 
-        setCurrentTab, 
-        resumes, 
-        activeResume, 
-        setActiveResume, 
-        user 
+    const {
+        currentTab,
+        setCurrentTab,
+        resumes,
+        activeResume,
+        setActiveResume,
+        user,
+        updateUser,
+        updateSettings
     } = useResumeStore();
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [resumeSelectorOpen, setResumeSelectorOpen] = useState(false);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+    useEffect(() => {
+        const verifyAuth = async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                router.push("/login");
+                return;
+            }
+
+            try {
+                const res = await fetch("http://localhost:3001/api/auth/me", {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error("Invalid token");
+                }
+
+                const data = await res.json();
+                updateUser(data.name, data.email);
+                
+                if (data.settings) {
+                    updateSettings({
+                        emailAlerts: data.settings.emailAlerts ?? true,
+                        autoAnalyze: data.settings.autoAnalyze ?? true,
+                        model: data.settings.model ?? "gpt-4o"
+                    });
+                }
+
+                setIsAuthenticated(true);
+            } catch (error) {
+                localStorage.removeItem("token");
+                router.push("/login");
+            }
+        };
+
+        verifyAuth();
+    }, [router]);
 
     // Dynamic Navigation links
     const NAV_ITEMS = [
@@ -78,6 +121,7 @@ export default function DashboardPage() {
     };
 
     const handleSignOut = () => {
+        localStorage.removeItem("token");
         router.push("/");
     };
 
@@ -110,6 +154,10 @@ export default function DashboardPage() {
         setMobileMenuOpen(false);
     }, [currentTab]);
 
+    if (!isAuthenticated) {
+        return null;
+    }
+
     return (
         <main className="relative min-h-screen bg-background text-foreground flex overflow-hidden selection:bg-primary/25">
             <VercelBackground />
@@ -131,11 +179,10 @@ export default function DashboardPage() {
                             <button
                                 key={item.value}
                                 onClick={() => setCurrentTab(item.value)}
-                                className={`w-full flex items-center gap-3 py-1.5 text-xs font-semibold text-left transition-all relative cursor-pointer ${
-                                    isActive
-                                        ? "text-primary pl-5 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-primary before:rounded-r shadow-[inset_4px_0_12px_oklch(0.58_0.2_255_/_15%)]"
-                                        : "text-muted-foreground hover:text-foreground/80 pl-5 hover:pl-6"
-                                }`}
+                                className={`w-full flex items-center gap-3 py-1.5 text-xs font-semibold text-left transition-all relative cursor-pointer ${isActive
+                                    ? "text-primary pl-5 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-primary before:rounded-r shadow-[inset_4px_0_12px_oklch(0.58_0.2_255_/_15%)]"
+                                    : "text-muted-foreground hover:text-foreground/80 pl-5 hover:pl-6"
+                                    }`}
                             >
                                 {item.icon}
                                 {item.label}
@@ -186,19 +233,7 @@ export default function DashboardPage() {
 
                     {/* Breadcrumbs (Desktop only) */}
                     <div className="hidden lg:flex items-center gap-3 text-xs text-muted-foreground font-mono">
-                        <span className="hover:text-foreground/80 cursor-pointer">Console</span>
-                        <span className="text-muted-foreground/50">/</span>
                         <span className="text-foreground/80 font-semibold">{getTabTitle()}</span>
-                    </div>
-
-                    {/* Console Search Bar */}
-                    <div className="relative w-full max-w-xs hidden md:block">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
-                        <input
-                            type="text"
-                            placeholder="Search console..."
-                            className="w-full h-8 pl-9 pr-4 rounded-lg bg-card border border-border text-[11px] text-foreground/80 outline-none placeholder:text-muted-foreground/70 focus:border-border transition-all font-mono"
-                        />
                     </div>
 
                     {/* Quick Access Tools */}
@@ -227,11 +262,10 @@ export default function DashboardPage() {
                                                 <button
                                                     key={res.id}
                                                     onClick={() => handleSelectResumeFromTop(res.id)}
-                                                    className={`w-full flex items-center justify-between rounded px-2 py-1.5 text-left text-[10px] transition-colors cursor-pointer ${
-                                                        activeResume?.id === res.id
-                                                            ? "bg-secondary text-foreground font-semibold"
-                                                            : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
-                                                    }`}
+                                                    className={`w-full flex items-center justify-between rounded px-2 py-1.5 text-left text-[10px] transition-colors cursor-pointer ${activeResume?.id === res.id
+                                                        ? "bg-secondary text-foreground font-semibold"
+                                                        : "text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
+                                                        }`}
                                                 >
                                                     <span className="truncate pr-2 font-mono">{res.name}</span>
                                                     <span className="font-mono text-muted-foreground">{res.score}%</span>
@@ -321,11 +355,10 @@ export default function DashboardPage() {
                                             setCurrentTab(item.value);
                                             setMobileMenuOpen(false);
                                         }}
-                                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-colors ${
-                                            isActive
-                                                ? "bg-secondary text-foreground border border-border"
-                                                : "text-muted-foreground hover:text-foreground/80"
-                                        }`}
+                                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-colors ${isActive
+                                            ? "bg-secondary text-foreground border border-border"
+                                            : "text-muted-foreground hover:text-foreground/80"
+                                            }`}
                                     >
                                         {item.icon}
                                         {item.label}

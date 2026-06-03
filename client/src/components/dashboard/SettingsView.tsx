@@ -27,20 +27,70 @@ export default function SettingsView() {
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [pwSuccess, setPwSuccess] = useState(false);
 
-    const handleSaveProfile = (e: React.FormEvent) => {
+    const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
-        updateUser(name, email);
-        setSaveSuccess(true);
-        setTimeout(() => setSaveSuccess(false), 2000);
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch("http://localhost:3001/api/users/profile", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ name, email })
+            });
+            if (!res.ok) throw new Error("Failed to save profile");
+            
+            updateUser(name, email);
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 2000);
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    const handleChangePassword = (e: React.FormEvent) => {
+    const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
-        setOldPassword("");
-        setNewPassword("");
-        setPwSuccess(true);
-        setTimeout(() => setPwSuccess(false), 2000);
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch("http://localhost:3001/api/users/profile", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ password: newPassword })
+            });
+            if (!res.ok) throw new Error("Failed to change password");
+
+            setOldPassword("");
+            setNewPassword("");
+            setPwSuccess(true);
+            setTimeout(() => setPwSuccess(false), 2000);
+        } catch (error) {
+            console.error(error);
+        }
     };
+
+    const handleUpdateSettings = async (newSettings: Partial<typeof settings>) => {
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch("http://localhost:3001/api/users/settings", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(newSettings)
+            });
+            if (!res.ok) throw new Error("Failed to update settings");
+            
+            updateSettings(newSettings);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
 
     return (
         <div className="space-y-8 text-left max-w-4xl mx-auto py-2">
@@ -187,7 +237,7 @@ export default function SettingsView() {
                             </div>
                             <select
                                 value={settings.model}
-                                onChange={(e) => updateSettings({ model: e.target.value })}
+                                onChange={(e) => handleUpdateSettings({ model: e.target.value })}
                                 className="h-8 px-3 rounded-lg bg-secondary border border-border text-xs text-foreground/80 outline-none focus:border-neutral-700 cursor-pointer"
                             >
                                 <option value="gpt-4o">OpenAI GPT-4o</option>
@@ -207,7 +257,7 @@ export default function SettingsView() {
                                 <input
                                     type="checkbox"
                                     checked={settings.autoAnalyze}
-                                    onChange={(e) => updateSettings({ autoAnalyze: e.target.checked })}
+                                    onChange={(e) => handleUpdateSettings({ autoAnalyze: e.target.checked })}
                                     className="size-4 rounded bg-secondary border border-border accent-primary cursor-pointer"
                                 />
                             </div>
@@ -221,7 +271,7 @@ export default function SettingsView() {
                                 <input
                                     type="checkbox"
                                     checked={settings.emailAlerts}
-                                    onChange={(e) => updateSettings({ emailAlerts: e.target.checked })}
+                                    onChange={(e) => handleUpdateSettings({ emailAlerts: e.target.checked })}
                                     className="size-4 rounded bg-secondary border border-border accent-primary cursor-pointer"
                                 />
                             </div>
