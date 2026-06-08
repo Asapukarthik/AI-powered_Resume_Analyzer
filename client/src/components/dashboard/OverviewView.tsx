@@ -44,7 +44,7 @@ export default function OverviewView() {
             {/* Quick Metrics Grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {/* Metric 1 */}
-                <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+                <div className="rounded-xl glass-card p-6 space-y-4">
                     <div className="flex items-center justify-between text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
                         <span>ATS Compliance</span>
                         <span className="flex items-center gap-0.5 text-green-400 font-bold font-sans">
@@ -60,7 +60,7 @@ export default function OverviewView() {
                 </div>
 
                 {/* Metric 2 */}
-                <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+                <div className="rounded-xl glass-card p-6 space-y-4">
                     <div className="flex items-center justify-between text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
                         <span>Skills Matching</span>
                         <span className="flex items-center gap-0.5 text-muted-foreground font-bold font-sans">
@@ -76,7 +76,7 @@ export default function OverviewView() {
                 </div>
 
                 {/* Metric 3 */}
-                <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+                <div className="rounded-xl glass-card p-6 space-y-4">
                     <div className="flex items-center justify-between text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
                         <span>Matched Keywords</span>
                         <span className="flex items-center gap-0.5 text-green-400 font-bold font-sans">
@@ -92,7 +92,7 @@ export default function OverviewView() {
                 </div>
 
                 {/* Metric 4 */}
-                <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+                <div className="rounded-xl glass-card p-6 space-y-4">
                     <div className="flex items-center justify-between text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
                         <span>Missing Gaps</span>
                         <span className="flex items-center gap-0.5 text-green-400 font-bold font-sans">
@@ -115,11 +115,11 @@ export default function OverviewView() {
                 <div className="lg:col-span-2 space-y-8">
                     {/* Active Resume summary & quick details */}
                     {activeResume ? (
-                        <div className="rounded-xl border border-border bg-card p-6 space-y-6">
+                        <div className="rounded-xl glass-card p-6 space-y-6">
                             {/* Card sub header */}
                             <div className="flex items-center justify-between border-b border-border pb-4">
                                 <div className="flex items-center gap-4">
-                                    <div className="inline-flex size-10 items-center justify-center rounded-xl border border-border bg-card">
+                                    <div className="inline-flex size-10 items-center justify-center rounded-xl glass-card">
                                         <FileText className="size-4.5 text-muted-foreground" />
                                     </div>
                                     <div>
@@ -182,7 +182,7 @@ export default function OverviewView() {
                             </div>
                         </div>
                     ) : (
-                        <div className="rounded-xl border border-dashed border-border bg-card p-12 text-center flex flex-col items-center justify-center">
+                        <div className="rounded-xl glass-card border border-dashed p-12 text-center flex flex-col items-center justify-center">
                             <FileText className="size-8 text-muted-foreground/70 mb-3" />
                             <h3 className="text-sm font-semibold text-muted-foreground">No scanned profiles found</h3>
                             <p className="text-xs text-muted-foreground mt-1 max-w-[260px] leading-relaxed mx-auto">
@@ -199,7 +199,7 @@ export default function OverviewView() {
 
                     {/* SVG Sparkline ATS History Trend */}
                     {activeResume && (
-                        <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+                        <div className="rounded-xl glass-card p-6 space-y-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">Score Compliance History</span>
                                 <span className="text-[10px] text-green-400 font-mono font-bold">+4.2% overall growth</span>
@@ -235,7 +235,7 @@ export default function OverviewView() {
                 {/* Right side inventory panels */}
                 <div className="space-y-6">
                     {/* Catalog list */}
-                    <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+                    <div className="rounded-xl glass-card p-6 space-y-4">
                         <div className="flex items-center justify-between border-b border-border pb-3">
                             <h4 className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">Scanned Inventory</h4>
                             <button
@@ -282,7 +282,7 @@ export default function OverviewView() {
                     </div>
 
                     {/* Role matcher promotion */}
-                    <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+                    <div className="rounded-xl glass-card p-6 space-y-4">
                         <div className="space-y-1">
                             <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider block">Job Matcher</span>
                             <h4 className="text-xs font-semibold text-foreground font-sans">Role Alignment Engine</h4>

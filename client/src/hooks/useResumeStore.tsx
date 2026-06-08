@@ -240,8 +240,8 @@ const INITIAL_RESUMES: ResumeData[] = [
 
 export function ResumeProvider({ children }: { children: React.ReactNode }) {
     const [currentTab, setCurrentTab] = useState<string>("overview");
-    const [resumes, setResumes] = useState<ResumeData[]>(INITIAL_RESUMES);
-    const [activeResume, setActiveResume] = useState<ResumeData | null>(INITIAL_RESUMES[0]);
+    const [resumes, setResumes] = useState<ResumeData[]>([]);
+    const [activeResume, setActiveResume] = useState<ResumeData | null>(null);
     const [isUploading, setIsUploading] = useState<boolean>(false);
     const [uploadProgress, setUploadProgress] = useState<number>(0);
     const [user, setUser] = useState<UserProfile>({
@@ -256,6 +256,51 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
         autoAnalyze: true,
         model: "gpt-4o"
     });
+
+    useEffect(() => {
+        const fetchResumes = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) return;
+                
+                const res = await fetch("http://localhost:3001/api/resumes", {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    
+                    // Map backend data to frontend ResumeData interface
+                    const mappedResumes: ResumeData[] = data.map((r: any) => ({
+                        id: r.id,
+                        name: r.name,
+                        date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                        size: r.size ? `${(r.size / (1024 * 1024)).toFixed(1)} MB` : "Unknown",
+                        score: r.score || 0,
+                        skillsMatch: r.skillsMatch || 0,
+                        matchedKeywords: r.matchedKeywordsCount || 0,
+                        missingKeywords: r.missingKeywordsCount || 0,
+                        summary: r.summary || "",
+                        strengths: r.strengths || [],
+                        weaknesses: r.weaknesses || [],
+                        keywords: r.keywords || [],
+                        recommendedSkills: r.recommendedSkills || [],
+                        suggestedRoadmap: r.suggestedRoadmap || [],
+                        interviewQuestions: r.interviewQuestions || []
+                    }));
+                    
+                    setResumes(mappedResumes);
+                    if (mappedResumes.length > 0) {
+                        setActiveResume(mappedResumes[0]);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch resumes", error);
+            }
+        };
+
+        fetchResumes();
+    }, []);
 
     const uploadResume = async (file: File, jobDescription: string): Promise<ResumeData> => {
         setIsUploading(true);
@@ -338,15 +383,30 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const deleteResume = (id: string) => {
-        setResumes(prev => {
-            const filtered = prev.filter(r => r.id !== id);
-            // Re-assign active resume if we deleted it
-            if (activeResume?.id === id) {
-                setActiveResume(filtered.length > 0 ? filtered[0] : null);
+    const deleteResume = async (id: string) => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            const res = await fetch(`http://localhost:3001/api/resumes/${id}`, {
+                method: "DELETE",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                setResumes(prev => {
+                    const filtered = prev.filter(r => r.id !== id);
+                    if (activeResume?.id === id) {
+                        setActiveResume(filtered.length > 0 ? filtered[0] : null);
+                    }
+                    return filtered;
+                });
+            } else {
+                console.error("Failed to delete resume on server");
             }
-            return filtered;
-        });
+        } catch (error) {
+            console.error("Error deleting resume", error);
+        }
     };
 
     const reanalyzeResume = async (id: string) => {

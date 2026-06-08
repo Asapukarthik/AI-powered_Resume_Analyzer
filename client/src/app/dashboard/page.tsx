@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useResumeStore } from "@/hooks/useResumeStore";
 import BackgroundParticles from "@/components/layout/BackgroundParticles";
-import VercelBackground from "@/components/layout/VercelBackground";
+import MeshGradientBackground from "@/components/layout/MeshGradientBackground";
 
 // Import view components
 import OverviewView from "@/components/dashboard/OverviewView";
@@ -160,11 +160,11 @@ export default function DashboardPage() {
 
     return (
         <main className="relative min-h-screen bg-background text-foreground flex overflow-hidden selection:bg-primary/25">
-            <VercelBackground />
+            <MeshGradientBackground />
             <BackgroundParticles />
 
             {/* --- DESKTOP SIDEBAR NAVIGATION --- */}
-            <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-background/80 backdrop-blur-md shrink-0 relative z-20">
+            <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-background/40 backdrop-blur-xl shrink-0 relative z-20">
                 {/* Branding Header */}
                 <div className="flex h-16 items-center gap-2 px-6 border-b border-border">
                     <Layers className="size-4 text-primary" />
@@ -205,7 +205,7 @@ export default function DashboardPage() {
 
                     <button
                         onClick={handleSignOut}
-                        className="w-full h-8 flex items-center gap-2 justify-center rounded-lg border border-border bg-card hover:bg-secondary hover:text-foreground transition-colors text-[10px] font-bold text-muted-foreground"
+                        className="w-full h-8 flex items-center gap-2 justify-center rounded-lg border border-border glass-card hover:bg-secondary hover:text-foreground transition-colors text-[10px] font-bold text-muted-foreground"
                     >
                         <LogOut className="size-3.5" />
                         Disconnect Session
@@ -216,12 +216,12 @@ export default function DashboardPage() {
             {/* --- RIGHT CONTENT PANEL --- */}
             <div className="flex-1 flex flex-col min-w-0 h-screen relative z-10 overflow-hidden">
                 {/* --- STICKY TOP NAVBAR --- */}
-                <header className="sticky top-0 z-30 w-full flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/80 backdrop-blur-md px-4 sm:px-6">
+                <header className="sticky top-0 z-30 w-full flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/40 backdrop-blur-xl px-4 sm:px-6">
                     {/* Mobile Hamburger Drawer Menu Toggle */}
                     <div className="flex items-center gap-3 lg:hidden">
                         <button
                             onClick={() => setMobileMenuOpen(true)}
-                            className="p-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground cursor-pointer"
+                            className="p-1.5 rounded-lg border border-border glass-card text-muted-foreground hover:text-foreground cursor-pointer"
                         >
                             <Menu className="size-4" />
                         </button>
@@ -243,7 +243,7 @@ export default function DashboardPage() {
                             <div className="relative">
                                 <button
                                     onClick={() => setResumeSelectorOpen(!resumeSelectorOpen)}
-                                    className="h-8 gap-1.5 rounded-lg border border-border bg-card/80 px-3 text-[10px] font-semibold text-foreground/80 hover:text-foreground hover:border-border transition-all flex items-center cursor-pointer"
+                                    className="h-8 gap-1.5 rounded-lg border border-border glass-card/80 px-3 text-[10px] font-semibold text-foreground/80 hover:text-foreground hover:border-border transition-all flex items-center cursor-pointer"
                                 >
                                     <FileText className="size-3.5 text-muted-foreground" />
                                     <span className="max-w-[120px] truncate font-mono">

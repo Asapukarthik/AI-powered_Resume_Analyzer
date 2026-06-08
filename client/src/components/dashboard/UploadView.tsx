@@ -98,7 +98,7 @@ export default function UploadView() {
                     >
                         <input {...getInputProps()} />
                         <div className="flex flex-col items-center justify-center space-y-4">
-                            <div className="inline-flex size-10 items-center justify-center rounded-xl border border-border bg-card">
+                            <div className="inline-flex size-10 items-center justify-center rounded-xl glass-card">
                                 <Upload className="size-4.5 text-muted-foreground" />
                             </div>
                             <div className="space-y-1">
@@ -119,7 +119,7 @@ export default function UploadView() {
 
             {/* Error Message */}
             {error && (
-                <div className="rounded-xl border border-border bg-card p-4 flex gap-3 text-xs text-muted-foreground">
+                <div className="rounded-xl glass-card p-4 flex gap-3 text-xs text-muted-foreground">
                     <AlertCircle className="size-4.5 shrink-0 text-muted-foreground mt-0.5" />
                     <div className="space-y-1">
                         <span className="font-semibold text-foreground">Upload Validation Gaps</span>
@@ -130,7 +130,7 @@ export default function UploadView() {
 
             {/* Uploading progress card */}
             {isUploading && uploadedFile && (
-                <div className="rounded-xl border border-border bg-card p-6 space-y-6">
+                <div className="rounded-xl glass-card p-6 space-y-6">
                     <div className="flex items-center gap-4 border-b border-border pb-4">
                         <div className="h-9 w-9 rounded-lg bg-secondary border border-border flex items-center justify-center">
                             <FileText className="size-4 text-muted-foreground" />
@@ -163,7 +163,7 @@ export default function UploadView() {
 
             {/* Upload Completed Successfully */}
             {success && uploadedFile && (
-                <div className="rounded-xl border border-border bg-card p-6 space-y-6">
+                <div className="rounded-xl glass-card p-6 space-y-6">
                     <div className="flex flex-col items-center space-y-2">
                         <div className="inline-flex size-10 items-center justify-center rounded-full bg-secondary border border-border text-foreground">
                             <CheckCircle2 className="size-5" />
@@ -207,7 +207,7 @@ export default function UploadView() {
             )}
 
             {/* Instruction panel */}
-            <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+            <div className="rounded-xl glass-card p-6 space-y-4">
                 <h4 className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">ATS Layout Recommendations</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-muted-foreground font-sans leading-relaxed">
                     <div className="space-y-1.5">

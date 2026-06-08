@@ -1,14 +1,14 @@
 import "./globals.css";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Outfit, Roboto_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ResumeProvider } from "@/hooks/useResumeStore";
 
-const geistSans = Geist({
+const outfit = Outfit({
     subsets: ["latin"],
     variable: "--font-sans",
 });
 
-const geistMono = Geist_Mono({
+const robotoMono = Roboto_Mono({
     subsets: ["latin"],
     variable: "--font-mono",
 });
@@ -26,7 +26,7 @@ export default function RootLayout({
     return (
         <html
             lang="en"
-            className={cn("dark font-sans", geistSans.variable, geistMono.variable)}
+            className={cn("dark font-sans", outfit.variable, robotoMono.variable)}
             style={{ colorScheme: "dark" }}
         >
             <body className="bg-background text-foreground antialiased selection:bg-primary/25 selection:text-foreground min-h-screen">

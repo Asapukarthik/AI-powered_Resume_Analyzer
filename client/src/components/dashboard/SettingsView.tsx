@@ -104,7 +104,7 @@ export default function SettingsView() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Left Sidebar Info Card */}
                 <div className="md:col-span-1 space-y-4">
-                    <div className="rounded-xl border border-border bg-card p-5 space-y-4">
+                    <div className="rounded-xl glass-card p-5 space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="h-9 w-9 rounded-full bg-secondary border border-border flex items-center justify-center font-mono font-bold text-xs text-muted-foreground">
                                 {user.name[0]}
@@ -123,7 +123,7 @@ export default function SettingsView() {
                 {/* Right Form Panels */}
                 <div className="md:col-span-2 space-y-8">
                     {/* User profile edits */}
-                    <div className="rounded-xl border border-border bg-card p-6 space-y-5">
+                    <div className="rounded-xl glass-card p-6 space-y-5">
                         <h3 className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-2 border-b border-border pb-3">
                             <User className="size-4 text-muted-foreground" />
                             USER DETAILS
@@ -179,7 +179,7 @@ export default function SettingsView() {
                     </div>
 
                     {/* Change Password Panel */}
-                    <div className="rounded-xl border border-border bg-card p-6 space-y-5">
+                    <div className="rounded-xl glass-card p-6 space-y-5">
                         <h3 className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-2 border-b border-border pb-3">
                             <Lock className="size-4 text-muted-foreground" />
                             CHANGE PASSWORD
@@ -223,7 +223,7 @@ export default function SettingsView() {
                     </div>
 
                     {/* Platform Preferences & Model Selector */}
-                    <div className="rounded-xl border border-border bg-card p-6 space-y-5">
+                    <div className="rounded-xl glass-card p-6 space-y-5">
                         <h3 className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-2 border-b border-border pb-3">
                             <Cpu className="size-4 text-muted-foreground" />
                             ANALYTICS PREFERENCES
