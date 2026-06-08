@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import { uploadAndAnalyzeResume } from '../controllers/resumeController.js';
+import { uploadAndAnalyzeResume, getUserResumes, deleteResume } from '../controllers/resumeController.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -19,7 +19,9 @@ const upload = multer({
   }
 });
 
-// Protect the route with authenticateToken middleware
+// Protect the routes with authenticateToken middleware
 router.post('/analyze', protect, upload.single('resume'), uploadAndAnalyzeResume);
+router.get('/', protect, getUserResumes);
+router.delete('/:id', protect, deleteResume);
 
 export default router;

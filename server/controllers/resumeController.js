@@ -71,3 +71,47 @@ export const uploadAndAnalyzeResume = async (req, res) => {
     return res.status(500).json({ error: 'Failed to process and analyze resume' });
   }
 };
+
+export const getUserResumes = async (req, res) => {
+  try {
+    const resumes = await prisma.resume.findMany({
+      where: { userId: req.user.id },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.json(resumes);
+  } catch (error) {
+    console.error('Error fetching resumes:', error);
+    res.status(500).json({ error: 'Failed to fetch resumes' });
+  }
+};
+
+export const deleteResume = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if resume belongs to user
+    const resume = await prisma.resume.findFirst({
+      where: { id, userId: req.user.id }
+    });
+
+    if (!resume) {
+      return res.status(404).json({ error: 'Resume not found' });
+    }
+
+    // Prisma handles cascading deletes for JobMatch if configured,
+    // otherwise we just delete the resume (and job matches will be orphaned or cascade deleted).
+    // Let's explicitly delete associated job matches just in case.
+    await prisma.jobMatch.deleteMany({
+      where: { resumeId: id }
+    });
+
+    await prisma.resume.delete({
+      where: { id }
+    });
+
+    res.json({ message: 'Resume deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting resume:', error);
+    res.status(500).json({ error: 'Failed to delete resume' });
+  }
+};
