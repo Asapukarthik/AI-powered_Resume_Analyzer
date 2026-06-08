@@ -7,6 +7,8 @@ import BackgroundParticles from "@/components/layout/BackgroundParticles";
 import VercelBackground from "@/components/layout/VercelBackground";
 import { Layers, Mail, Lock, User, Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
 
+import { useGoogleLogin } from "@react-oauth/google";
+
 export default function RegisterPage() {
     const router = useRouter();
     const [name, setName] = useState("");
@@ -92,12 +94,32 @@ export default function RegisterPage() {
         }
     };
 
-    const handleGoogleSignup = async () => {
-        setLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        setLoading(false);
-        router.push("/dashboard");
-    };
+    const handleGoogleSignup = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            setLoading(true);
+            setError("");
+            try {
+                const res = await fetch("http://localhost:3001/api/auth/google", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token: tokenResponse.access_token }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Google auth failed");
+
+                localStorage.setItem("token", data.token);
+                setSuccess(true);
+                router.push("/dashboard");
+            } catch (err: any) {
+                setError(err.message || "Google auth failed.");
+            } finally {
+                setLoading(false);
+            }
+        },
+        onError: () => {
+            setError("Google auth failed.");
+        }
+    });
 
     return (
         <main className="relative min-h-screen bg-background text-foreground flex items-center justify-center p-4 overflow-hidden">
@@ -282,7 +304,7 @@ export default function RegisterPage() {
 
                     {/* Google Sign Up */}
                     <button
-                        onClick={handleGoogleSignup}
+                        onClick={() => handleGoogleSignup()}
                         disabled={loading}
                         className="w-full h-10 rounded-lg border border-border bg-secondary/40 hover:bg-accent/40 active:translate-y-[1px] text-sm font-semibold text-foreground transition-all flex items-center justify-center gap-2"
                     >

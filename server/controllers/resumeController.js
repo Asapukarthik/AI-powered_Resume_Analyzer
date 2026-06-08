@@ -1,6 +1,7 @@
 import { prisma } from '../index.js';
 import { extractTextFromFile } from '../services/fileParser.js';
 import { analyzeResume } from '../services/aiService.js';
+import { uploadToCloudinary } from '../utils/cloudinary.js';
 
 
 export const uploadAndAnalyzeResume = async (req, res) => {
@@ -17,9 +18,16 @@ export const uploadAndAnalyzeResume = async (req, res) => {
     }
 
     // 1. Extract text from the uploaded file
-    const resumeText = await extractTextFromFile(file.buffer, file.mimetype);
-
-    // 2. Use AI to analyze the resume against the job description
+    const resumeText = await extractTextFromFile(file.buffer, file.mimetype, file.originalname);
+    // 2. Upload file to Cloudinary storage
+    let cloudinaryUrl = '';
+    try {
+      cloudinaryUrl = await uploadToCloudinary(file.buffer, file.originalname);
+    } catch (uploadError) {
+      console.error('Cloudinary upload error:', uploadError);
+      cloudinaryUrl = file.originalname; // Fallback
+    }
+    // 3. Use AI to analyze
     const analysis = await analyzeResume(resumeText, jobDescription);
 
     // 3. Derive keyword counts from the AI's keywords array
@@ -44,7 +52,7 @@ export const uploadAndAnalyzeResume = async (req, res) => {
         keywords: analysis.keywords || [],
         suggestedRoadmap: analysis.suggestedRoadmap || [],
         interviewQuestions: analysis.interviewQuestions || [],
-        filePath: file.originalname, // buffer-based; no disk path
+        filePath: cloudinaryUrl, // stored URL from Cloudinary
       },
     });
 
@@ -88,7 +96,7 @@ export const getUserResumes = async (req, res) => {
 export const deleteResume = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     // Check if resume belongs to user
     const resume = await prisma.resume.findFirst({
       where: { id, userId: req.user.id }

@@ -10,7 +10,7 @@ const mammoth = mammothMod.default;
  * @param {string} mimetype - The file MIME type
  * @returns {Promise<string>} The extracted text
  */
-export const extractTextFromFile = async (buffer, mimetype) => {
+export const extractTextFromFile = async (buffer, mimetype, fileName = '') => {
     if (!buffer) {
         throw new Error('No file buffer provided');
     }
@@ -18,17 +18,17 @@ export const extractTextFromFile = async (buffer, mimetype) => {
     let extractedText = '';
 
     try {
-        if (mimetype === 'application/pdf') {
+        const isPdf = mimetype === 'application/pdf' || mimetype === 'application/x-pdf' || (fileName && fileName.toLowerCase().endsWith('.pdf'));
+        const isDocx = mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || mimetype === 'application/msword' || (fileName && (fileName.toLowerCase().endsWith('.docx') || fileName.toLowerCase().endsWith('.doc')));
+
+        if (isPdf) {
             const pdfData = await pdfParse(buffer);
             extractedText = pdfData.text;
-        } else if (
-            mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-            mimetype === 'application/msword'
-        ) {
+        } else if (isDocx) {
             const docxData = await mammoth.extractRawText({ buffer });
             extractedText = docxData.value;
         } else {
-            throw new Error('Unsupported file format');
+            throw new Error(`Unsupported file format. Mimetype: ${mimetype}`);
         }
 
         // Clean up excessive whitespace and special characters to aid LLM parsing

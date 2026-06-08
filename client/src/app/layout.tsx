@@ -2,6 +2,7 @@ import "./globals.css";
 import { Outfit, Roboto_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ResumeProvider } from "@/hooks/useResumeStore";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const outfit = Outfit({
     subsets: ["latin"],
@@ -23,6 +24,9 @@ export default function RootLayout({
 }: {
     children: React.ReactNode;
 }) {
+    // Note: We use process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID. Ensure this is set in your .env.local
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+    
     return (
         <html
             lang="en"
@@ -30,7 +34,9 @@ export default function RootLayout({
             style={{ colorScheme: "dark" }}
         >
             <body className="bg-background text-foreground antialiased selection:bg-primary/25 selection:text-foreground min-h-screen">
-                <ResumeProvider>{children}</ResumeProvider>
+                <GoogleOAuthProvider clientId={clientId}>
+                    <ResumeProvider>{children}</ResumeProvider>
+                </GoogleOAuthProvider>
             </body>
         </html>
     );

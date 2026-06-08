@@ -7,6 +7,8 @@ import BackgroundParticles from "@/components/layout/BackgroundParticles";
 import VercelBackground from "@/components/layout/VercelBackground";
 import { Layers, Mail, Lock, Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
 
+import { useGoogleLogin } from "@react-oauth/google";
+
 export default function LoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState("");
@@ -39,7 +41,7 @@ export default function LoginPage() {
         }
 
         setLoading(true);
-        
+
         try {
             const res = await fetch("http://localhost:3001/api/auth/login", {
                 method: "POST",
@@ -55,9 +57,9 @@ export default function LoginPage() {
 
             // Save JWT token
             localStorage.setItem("token", data.token);
-            
+
             setSuccess(true);
-            
+
             // Direct redirect to dashboard
             setTimeout(() => {
                 router.push("/dashboard");
@@ -69,12 +71,32 @@ export default function LoginPage() {
         }
     };
 
-    const handleGoogleLogin = async () => {
-        setLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        setLoading(false);
-        router.push("/dashboard");
-    };
+    const handleGoogleLoginSuccess = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            setLoading(true);
+            setError("");
+            try {
+                const res = await fetch("http://localhost:3001/api/auth/google", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token: tokenResponse.access_token }),
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || "Google auth failed");
+
+                localStorage.setItem("token", data.token);
+                setSuccess(true);
+                router.push("/dashboard");
+            } catch (err: any) {
+                setError(err.message || "Google auth failed.");
+            } finally {
+                setLoading(false);
+            }
+        },
+        onError: () => {
+            setError("Google auth failed.");
+        }
+    });
 
     return (
         <main className="relative min-h-screen bg-background text-foreground flex items-center justify-center p-4 overflow-hidden">
@@ -129,11 +151,10 @@ export default function LoginPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     onBlur={() => setEmailTouched(true)}
                                     placeholder="name@company.com"
-                                    className={`w-full h-10 pl-10 pr-4 rounded-lg bg-secondary/60 border ${
-                                        emailTouched && !isEmailValid
-                                            ? "border-red-500/50 focus:border-red-500"
-                                            : "border-border focus:border-neutral-500"
-                                    } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
+                                    className={`w-full h-10 pl-10 pr-4 rounded-lg bg-secondary/60 border ${emailTouched && !isEmailValid
+                                        ? "border-red-500/50 focus:border-red-500"
+                                        : "border-border focus:border-neutral-500"
+                                        } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
                                 />
                             </div>
                             {emailTouched && !isEmailValid && (
@@ -158,11 +179,10 @@ export default function LoginPage() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     onBlur={() => setPasswordTouched(true)}
                                     placeholder="••••••••"
-                                    className={`w-full h-10 pl-10 pr-4 rounded-lg bg-secondary/60 border ${
-                                        passwordTouched && !isPasswordValid
-                                            ? "border-red-500/50 focus:border-red-500"
-                                            : "border-border focus:border-neutral-500"
-                                    } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
+                                    className={`w-full h-10 pl-10 pr-4 rounded-lg bg-secondary/60 border ${passwordTouched && !isPasswordValid
+                                        ? "border-red-500/50 focus:border-red-500"
+                                        : "border-border focus:border-neutral-500"
+                                        } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
                                 />
                             </div>
                             {passwordTouched && !isPasswordValid && (
@@ -198,7 +218,7 @@ export default function LoginPage() {
 
                     {/* Google Sign In */}
                     <button
-                        onClick={handleGoogleLogin}
+                        onClick={() => handleGoogleLoginSuccess()}
                         disabled={loading}
                         className="w-full h-10 rounded-lg border border-border bg-secondary/40 hover:bg-accent/40 active:translate-y-[1px] text-sm font-semibold text-foreground transition-all flex items-center justify-center gap-2"
                     >
