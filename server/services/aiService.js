@@ -1,106 +1,176 @@
-import { GoogleGenAI } from '@google/genai';
-import dotenv from 'dotenv';
+import { GoogleGenAI } from "@google/genai";
+import dotenv from "dotenv";
+import { ResumeAnalysisSchema } from "../validators/resumeAnalysisSchema.js";
 
 dotenv.config();
 
 export const analyzeResume = async (resumeText, jobDescription) => {
-  // Instantiate inside the function so GEMINI_API_KEY is read after dotenv loads
-  const ai = new GoogleGenAI({
-    apiKey: process.env.GEMINI_API_KEY,
-  });
-  try {
-    const prompt = `You are an expert ATS (Applicant Tracking System) and resume analyzer. Your goal is to evaluate a resume against a specific job description and provide a comprehensive analysis in JSON format.
+  let retries = 3;
+  let delay = 2000;
 
-Please analyze the following resume against the provided job description.
+  while (retries > 0) {
+    try {
+      const ai = new GoogleGenAI({
+        apiKey: process.env.GEMINI_API_KEY,
+      });
 
-Job Description:
+      const prompt = `
+You are an expert ATS system, recruiter, career coach, and technical interviewer.
+
+Analyze the resume against the provided job description.
+
+JOB DESCRIPTION:
 ${jobDescription}
 
-Resume:
+RESUME:
 ${resumeText}
 
-Provide your analysis ONLY as a valid JSON object with this EXACT structure (no markdown, no explanation, just JSON):
+Return ONLY valid JSON.
+
 {
-  "matchScore": <number between 0 and 100>,
-  "summary": "a concise 2-3 sentence summary of the candidate's fit for this role",
-  "strengths": ["strength 1", "strength 2", "strength 3", "strength 4"],
-  "weaknesses": ["weakness/gap 1", "weakness/gap 2", "weakness/gap 3"],
-  "recommendations": ["actionable tip 1", "actionable tip 2", "actionable tip 3"],
-  "keywords": [
-    { "word": "keyword name", "category": "matched", "count": <how many times it appears in resume> },
-    { "word": "keyword name", "category": "missing", "count": 0 },
-    { "word": "overused keyword", "category": "overused", "count": <count> }
-  ],
-  "suggestedRoadmap": [
+  "atsAnalysis": {
+    "overallScore": 0,
+    "keywordScore": 0,
+    "experienceScore": 0,
+    "projectScore": 0,
+    "formattingScore": 0,
+    "summary": "",
+    "strengths": [],
+    "weaknesses": [],
+    "recommendations": []
+  },
+
+  "keywords": {
+    "matched": [
+      {
+        "word": "",
+        "count": 0,
+        "importance": "high"
+      }
+    ],
+    "missing": [
+      {
+        "word": "",
+        "importance": "high"
+      }
+    ],
+    "overused": [
+      {
+        "word": "",
+        "count": 0
+      }
+    ]
+  },
+
+  "resumeSections": {
+    "summary": 0,
+    "skills": 0,
+    "experience": 0,
+    "projects": 0,
+    "education": 0
+  },
+
+  "careerInsights": {
+    "currentLevel": "",
+    "targetRole": "",
+    "estimatedTimeline": "",
+    "marketReadinessScore": 0
+  },
+
+  "skillGapAnalysis": {
+    "currentSkills": [],
+    "missingSkills": [],
+    "recommendedSkills": []
+  },
+
+  "learningRoadmap": [
     {
       "step": 1,
-      "title": "Short title for this learning step",
-      "description": "What the candidate should do and why it helps",
-      "duration": "X weeks",
-      "skills": ["skill1", "skill2", "skill3"]
-    },
-    {
-      "step": 2,
-      "title": "Short title for this learning step",
-      "description": "What the candidate should do and why it helps",
-      "duration": "X weeks",
-      "skills": ["skill1", "skill2"]
-    },
-    {
-      "step": 3,
-      "title": "Short title for this learning step",
-      "description": "What the candidate should do and why it helps",
-      "duration": "X weeks",
-      "skills": ["skill1", "skill2"]
+      "title": "",
+      "description": "",
+      "duration": "",
+      "skills": []
     }
   ],
+
+  "resumeOptimization": {
+    "rewrittenSummary": "",
+    "improvedBulletPoints": []
+  },
+
+  "projectFeedback": [
+    {
+      "project": "",
+      "score": 0,
+      "suggestions": []
+    }
+  ],
+
   "interviewQuestions": [
     {
-      "id": "q-1",
+      "id": "q1",
       "category": "technical",
-      "question": "A technical question relevant to the job and resume",
-      "answer": "A detailed model answer demonstrating expertise"
-    },
-    {
-      "id": "q-2",
-      "category": "technical",
-      "question": "Another technical question",
-      "answer": "A detailed model answer"
-    },
-    {
-      "id": "q-3",
-      "category": "hr",
-      "question": "A behavioral or situational HR question",
-      "answer": "A STAR-method model answer"
-    },
-    {
-      "id": "q-4",
-      "category": "project",
-      "question": "A question about a specific project or accomplishment on the resume",
-      "answer": "A detailed model answer referencing the resume content"
+      "question": "",
+      "answer": ""
     }
-  ]
+  ],
+
+  "recruiterView": {
+    "hireRecommendation": "",
+    "riskFactors": []
+  }
 }
 
 Rules:
-- keywords array MUST include at least 5 matched keywords (skills found in both resume and job description), 3 missing keywords (required by job but absent from resume), and 2 overused words.
-- suggestedRoadmap MUST have exactly 3 steps addressing the candidate's biggest gaps.
-- interviewQuestions MUST have at least 4 questions across technical, hr, and project categories.
-- All string values must be complete sentences, not placeholders.`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        temperature: 0.2,
+1. All scores must be between 0 and 100.
+2. Include at least:
+   - 5 matched keywords
+   - 3 missing keywords
+   - 2 overused words
+3. Generate exactly 3 roadmap steps.
+4. Generate at least:
+   - 20 technical questions
+   - 10 HR question
+   - 10 project question
+5. Recommendations must be actionable.
+6. Return ONLY JSON.
+`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          temperature: 0.2,
+        },
+      });
+
+      const rawResponse = response.text;
+
+      const cleanedResponse = rawResponse
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
+
+      const parsedData = JSON.parse(cleanedResponse);
+
+      const validatedData = ResumeAnalysisSchema.parse(parsedData);
+
+      return validatedData;
+    } catch (error) {
+      if (error?.status === 503 && retries > 1) {
+        console.warn(`Gemini API 503 error. Retrying in ${delay}ms... (${retries - 1} retries left)`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        retries--;
+        delay *= 2;
+      } else {
+        console.error("Gemini Analysis Error:", error);
+
+        throw new Error(
+          error?.message || "Failed to analyze resume"
+        );
       }
-    });
-
-    const aiResponse = response.text;
-    return JSON.parse(aiResponse);
-  } catch (error) {
-    console.error('Error analyzing resume with Gemini:', error);
-    throw new Error('Failed to analyze resume with AI');
+    }
   }
 };

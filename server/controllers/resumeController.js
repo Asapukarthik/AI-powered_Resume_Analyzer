@@ -30,10 +30,18 @@ export const uploadAndAnalyzeResume = async (req, res) => {
     // 3. Use AI to analyze
     const analysis = await analyzeResume(resumeText, jobDescription);
 
-    // 3. Derive keyword counts from the AI's keywords array
-    const keywords = analysis.keywords || [];
-    const matchedKeywordsCount = keywords.filter(k => k.category === 'matched').length;
-    const missingKeywordsCount = keywords.filter(k => k.category === 'missing').length;
+    // 3. Derive keyword counts from the nested keywords object
+    const matchedKeywords = analysis.keywords?.matched || [];
+    const missingKeywords = analysis.keywords?.missing || [];
+    const matchedKeywordsCount = matchedKeywords.length;
+    const missingKeywordsCount = missingKeywords.length;
+
+    // Flatten keywords into a single array for storage
+    const allKeywords = [
+      ...matchedKeywords.map(k => ({ word: k.word, category: 'matched', count: k.count || 0 })),
+      ...missingKeywords.map(k => ({ word: k.word, category: 'missing', count: 0 })),
+      ...(analysis.keywords?.overused || []).map(k => ({ word: k.word, category: 'overused', count: k.count || 0 }))
+    ];
 
     // 4. Save the resume to the database with full AI analysis
     const newResume = await prisma.resume.create({
@@ -41,18 +49,18 @@ export const uploadAndAnalyzeResume = async (req, res) => {
         userId: req.user.id,
         name: file.originalname,
         size: file.size,
-        score: analysis.matchScore || 0,
-        skillsMatch: analysis.matchScore || 0,
+        score: analysis.atsAnalysis?.overallScore || 0,
+        skillsMatch: analysis.careerInsights?.marketReadinessScore || 0,
         matchedKeywordsCount,
         missingKeywordsCount,
-        summary: analysis.summary || '',
-        strengths: analysis.strengths || [],
-        weaknesses: analysis.weaknesses || [],
-        recommendedSkills: analysis.recommendations || [],
-        keywords: analysis.keywords || [],
-        suggestedRoadmap: analysis.suggestedRoadmap || [],
+        summary: analysis.atsAnalysis?.summary || '',
+        strengths: analysis.atsAnalysis?.strengths || [],
+        weaknesses: analysis.atsAnalysis?.weaknesses || [],
+        recommendedSkills: analysis.skillGapAnalysis?.recommendedSkills || [],
+        keywords: allKeywords,
+        suggestedRoadmap: analysis.learningRoadmap || [],
         interviewQuestions: analysis.interviewQuestions || [],
-        filePath: cloudinaryUrl, // stored URL from Cloudinary
+        filePath: cloudinaryUrl,
       },
     });
 
@@ -62,10 +70,10 @@ export const uploadAndAnalyzeResume = async (req, res) => {
         userId: req.user.id,
         resumeId: newResume.id,
         jobDescription: jobDescription,
-        matchPercentage: analysis.matchScore || 0,
-        matchedKeywords: analysis.keywords?.filter(k => k.category === 'matched') || [],
-        missingSkills: analysis.weaknesses || [],
-        suggestions: analysis.recommendations || [],
+        matchPercentage: analysis.atsAnalysis?.overallScore || 0,
+        matchedKeywords: matchedKeywords,
+        missingSkills: analysis.skillGapAnalysis?.missingSkills || [],
+        suggestions: analysis.atsAnalysis?.recommendations || [],
       },
     });
 
