@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BackgroundParticles from "@/components/layout/BackgroundParticles";
 import VercelBackground from "@/components/layout/VercelBackground";
-import { Layers, Mail, Lock, User, Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Layers, Mail, Eye, EyeOff, Lock, User, Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
 
 import { useGoogleLogin } from "@react-oauth/google";
 
@@ -14,9 +14,12 @@ export default function RegisterPage() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [terms, setTerms] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [registerLoading, setRegisterLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
 
@@ -28,8 +31,10 @@ export default function RegisterPage() {
 
     const isNameValid = name.trim().length >= 2;
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    const isPasswordValid = password.length >= 6;
-    const isConfirmValid = password === confirmPassword;
+    const isPasswordValid = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/.test(password);
+    const isConfirmValid =
+        confirmPassword.length > 0 &&
+        password === confirmPassword;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -64,10 +69,10 @@ export default function RegisterPage() {
             return;
         }
 
-        setLoading(true);
-        
+        setRegisterLoading(true);
+
         try {
-            const res = await fetch("http://localhost:3001/api/auth/register", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ name, email, password }),
@@ -81,25 +86,23 @@ export default function RegisterPage() {
 
             // Save JWT token
             localStorage.setItem("token", data.token);
-            
+
             setSuccess(true);
-            
-            setTimeout(() => {
-                router.push("/dashboard");
-            }, 300);
-        } catch (err: any) {
-            setError(err.message || "An error occurred during registration.");
+
+            router.replace("/dashboard");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "An error occurred during registration.");
         } finally {
-            setLoading(false);
+            setRegisterLoading(false);
         }
     };
 
     const handleGoogleSignup = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
-            setLoading(true);
+            setGoogleLoading(true);
             setError("");
             try {
-                const res = await fetch("http://localhost:3001/api/auth/google", {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ token: tokenResponse.access_token }),
@@ -109,11 +112,11 @@ export default function RegisterPage() {
 
                 localStorage.setItem("token", data.token);
                 setSuccess(true);
-                router.push("/dashboard");
-            } catch (err: any) {
-                setError(err.message || "Google auth failed.");
+                router.replace("/dashboard");
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : "Google auth failed.");
             } finally {
-                setLoading(false);
+                setGoogleLoading(false);
             }
         },
         onError: () => {
@@ -157,7 +160,7 @@ export default function RegisterPage() {
 
                     {success && (
                         <div className="mb-4 rounded-lg border border-green-500/20 bg-green-950/30 p-3 text-xs text-green-400 font-medium flex items-center gap-1.5">
-                            <ShieldCheck className="size-4" /> Account registered successfully! Redirecting...
+                            <ShieldCheck className="size-4" /> Creating your AI workspace...
                         </div>
                     )}
 
@@ -174,11 +177,10 @@ export default function RegisterPage() {
                                     onChange={(e) => setName(e.target.value)}
                                     onBlur={() => setNameTouched(true)}
                                     placeholder="Alex Dev"
-                                    className={`w-full h-10 pl-10 pr-4 rounded-lg bg-secondary/60 border ${
-                                        nameTouched && !isNameValid
-                                            ? "border-red-500/50 focus:border-red-500"
-                                            : "border-border focus:border-neutral-500"
-                                    } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
+                                    className={`w-full h-10 pl-10 pr-4 rounded-lg bg-secondary/60 border ${nameTouched && !isNameValid
+                                        ? "border-red-500/50 focus:border-red-500"
+                                        : "border-border focus:border-neutral-500"
+                                        } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
                                 />
                             </div>
                             {nameTouched && !isNameValid && (
@@ -198,11 +200,10 @@ export default function RegisterPage() {
                                     onChange={(e) => setEmail(e.target.value)}
                                     onBlur={() => setEmailTouched(true)}
                                     placeholder="name@company.com"
-                                    className={`w-full h-10 pl-10 pr-4 rounded-lg bg-secondary/60 border ${
-                                        emailTouched && !isEmailValid
-                                            ? "border-red-500/50 focus:border-red-500"
-                                            : "border-border focus:border-neutral-500"
-                                    } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
+                                    className={`w-full h-10 pl-10 pr-4 rounded-lg bg-secondary/60 border ${emailTouched && !isEmailValid
+                                        ? "border-red-500/50 focus:border-red-500"
+                                        : "border-border focus:border-neutral-500"
+                                        } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
                                 />
                             </div>
                             {emailTouched && !isEmailValid && (
@@ -216,21 +217,27 @@ export default function RegisterPage() {
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70" />
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     onBlur={() => setPasswordTouched(true)}
                                     placeholder="••••••••"
-                                    className={`w-full h-10 pl-10 pr-4 rounded-lg bg-secondary/60 border ${
-                                        passwordTouched && !isPasswordValid
-                                            ? "border-red-500/50 focus:border-red-500"
-                                            : "border-border focus:border-neutral-500"
-                                    } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
+                                    className={`w-full h-10 pl-10 pr-10 rounded-lg bg-secondary/60 border ${passwordTouched && !isPasswordValid
+                                        ? "border-red-500/50 focus:border-red-500"
+                                        : "border-border focus:border-neutral-500"
+                                        } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/80 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                                </button>
                             </div>
                             {passwordTouched && !isPasswordValid && (
-                                <span className="text-[10px] text-red-500 block">Password must be at least 6 characters.</span>
+                                <span className="text-[10px] text-red-500 block">Password must be at least 8 characters with one uppercase letter and one number.</span>
                             )}
                         </div>
 
@@ -240,18 +247,30 @@ export default function RegisterPage() {
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70" />
                                 <input
-                                    type="password"
+                                    type={showConfirmPassword ? "text" : "password"}
                                     required
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     onBlur={() => setConfirmTouched(true)}
                                     placeholder="••••••••"
-                                    className={`w-full h-10 pl-10 pr-4 rounded-lg bg-secondary/60 border ${
-                                        confirmTouched && !isConfirmValid
-                                            ? "border-red-500/50 focus:border-red-500"
-                                            : "border-border focus:border-neutral-500"
-                                    } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
+                                    className={`w-full h-10 pl-10 pr-4 rounded-lg bg-secondary/60 border ${confirmTouched && !isConfirmValid
+                                        ? "border-red-500/50 focus:border-red-500"
+                                        : "border-border focus:border-neutral-500"
+                                        } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setShowConfirmPassword(!showConfirmPassword)
+                                    }
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                >
+                                    {showConfirmPassword ? (
+                                        <EyeOff className="size-4" />
+                                    ) : (
+                                        <Eye className="size-4" />
+                                    )}
+                                </button>
                             </div>
                             {confirmTouched && !isConfirmValid && (
                                 <span className="text-[10px] text-red-500 block">Passwords do not match.</span>
@@ -278,10 +297,10 @@ export default function RegisterPage() {
 
                         <button
                             type="submit"
-                            disabled={loading || success}
+                            disabled={registerLoading || success}
                             className="w-full h-10 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_oklch(0.58_0.2_255_/_20%)] active:translate-y-[1px] text-sm font-semibold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:pointer-events-none"
                         >
-                            {loading ? (
+                            {registerLoading ? (
                                 <>
                                     <Loader2 className="size-4 animate-spin" />
                                     Creating Account...
@@ -305,7 +324,7 @@ export default function RegisterPage() {
                     {/* Google Sign Up */}
                     <button
                         onClick={() => handleGoogleSignup()}
-                        disabled={loading}
+                        disabled={googleLoading}
                         className="w-full h-10 rounded-lg border border-border bg-secondary/40 hover:bg-accent/40 active:translate-y-[1px] text-sm font-semibold text-foreground transition-all flex items-center justify-center gap-2"
                     >
                         <svg className="size-4" viewBox="0 0 24 24">
@@ -326,7 +345,7 @@ export default function RegisterPage() {
                                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                             />
                         </svg>
-                        Google Credentials
+                        Sign up with Google
                     </button>
 
                     {/* Footer link */}

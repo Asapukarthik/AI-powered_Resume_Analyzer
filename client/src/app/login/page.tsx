@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import BackgroundParticles from "@/components/layout/BackgroundParticles";
 import VercelBackground from "@/components/layout/VercelBackground";
-import { Layers, Mail, Lock, Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
+import { Layers, Mail, Lock, Eye, EyeOff, Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
 
 import { useGoogleLogin } from "@react-oauth/google";
 
@@ -13,7 +13,10 @@ export default function LoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [loading, setLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    // const [loading, setLoading] = useState(false);
+    const [emailLoading, setEmailLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
 
@@ -22,7 +25,7 @@ export default function LoginPage() {
     const [passwordTouched, setPasswordTouched] = useState(false);
 
     const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    const isPasswordValid = password.length >= 6;
+    const isPasswordValid = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/.test(password);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -40,10 +43,10 @@ export default function LoginPage() {
             return;
         }
 
-        setLoading(true);
+        setEmailLoading(true);
 
         try {
-            const res = await fetch("http://localhost:3001/api/auth/login", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
@@ -60,23 +63,24 @@ export default function LoginPage() {
 
             setSuccess(true);
 
-            // Direct redirect to dashboard
-            setTimeout(() => {
-                router.push("/dashboard");
-            }, 300);
-        } catch (err: any) {
-            setError(err.message || "An error occurred during login.");
+            // // Direct redirect to dashboard
+            // setTimeout(() => {
+            //     router.push("/dashboard");
+            // }, 300);
+            router.replace("/dashboard");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "An error occurred during login.");
         } finally {
-            setLoading(false);
+            setEmailLoading(false);
         }
     };
 
     const handleGoogleLoginSuccess = useGoogleLogin({
         onSuccess: async (tokenResponse) => {
-            setLoading(true);
+            setGoogleLoading(true);
             setError("");
             try {
-                const res = await fetch("http://localhost:3001/api/auth/google", {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ token: tokenResponse.access_token }),
@@ -86,11 +90,11 @@ export default function LoginPage() {
 
                 localStorage.setItem("token", data.token);
                 setSuccess(true);
-                router.push("/dashboard");
-            } catch (err: any) {
-                setError(err.message || "Google auth failed.");
+                router.replace("/dashboard");
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : "Google auth failed.");
             } finally {
-                setLoading(false);
+                setGoogleLoading(false);
             }
         },
         onError: () => {
@@ -173,29 +177,36 @@ export default function LoginPage() {
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/70" />
                                 <input
-                                    type="password"
+                                    type={showPassword ? "text" : "password"}
                                     required
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     onBlur={() => setPasswordTouched(true)}
                                     placeholder="••••••••"
-                                    className={`w-full h-10 pl-10 pr-4 rounded-lg bg-secondary/60 border ${passwordTouched && !isPasswordValid
+                                    className={`w-full h-10 pl-10 pr-10 rounded-lg bg-secondary/60 border ${passwordTouched && !isPasswordValid
                                         ? "border-red-500/50 focus:border-red-500"
                                         : "border-border focus:border-neutral-500"
                                         } text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/70`}
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-foreground/80 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                                </button>
                             </div>
                             {passwordTouched && !isPasswordValid && (
-                                <span className="text-[10px] text-red-500 block">Password must be at least 6 characters.</span>
+                                <span className="text-[10px] text-red-500 block">Password must be at least 8 characters with one uppercase letter and one number.</span>
                             )}
                         </div>
 
                         <button
                             type="submit"
-                            disabled={loading || success}
+                            disabled={emailLoading || success}
                             className="w-full h-10 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_oklch(0.58_0.2_255_/_20%)] active:translate-y-[1px] text-sm font-semibold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:pointer-events-none"
                         >
-                            {loading ? (
+                            {emailLoading ? (
                                 <>
                                     <Loader2 className="size-4 animate-spin" />
                                     Signing In...
@@ -219,7 +230,7 @@ export default function LoginPage() {
                     {/* Google Sign In */}
                     <button
                         onClick={() => handleGoogleLoginSuccess()}
-                        disabled={loading}
+                        disabled={googleLoading}
                         className="w-full h-10 rounded-lg border border-border bg-secondary/40 hover:bg-accent/40 active:translate-y-[1px] text-sm font-semibold text-foreground transition-all flex items-center justify-center gap-2"
                     >
                         <svg className="size-4" viewBox="0 0 24 24">
@@ -240,12 +251,12 @@ export default function LoginPage() {
                                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                             />
                         </svg>
-                        Google Credentials
+                        Sign in with Google
                     </button>
 
                     {/* Footer link */}
                     <p className="mt-6 text-center text-xs text-muted-foreground">
-                        Don't have an account?{" "}
+                        Don&apos;t have an account?{" "}
                         <Link href="/register" className="text-foreground/80 hover:text-foreground underline-offset-4 hover:underline font-semibold">
                             Create Account
                         </Link>
