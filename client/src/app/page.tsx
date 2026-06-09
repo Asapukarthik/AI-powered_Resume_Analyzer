@@ -21,6 +21,8 @@ import {
     Layers,
 } from "lucide-react";
 
+import { FaGithub, FaLinkedin } from "react-icons/fa";
+
 // Reusable animation variants
 const fadeInUp = {
     hidden: { opacity: 0, y: 40 },
@@ -116,7 +118,7 @@ export default function LandingPage() {
 
             <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/70 backdrop-blur-xl transition-all duration-300">
                 <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5 }}
@@ -130,7 +132,7 @@ export default function LandingPage() {
                         </span>
                     </motion.div>
 
-                    <motion.nav 
+                    <motion.nav
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.1 }}
@@ -142,7 +144,7 @@ export default function LandingPage() {
                         <a href="#faq" className="hover:text-foreground transition-colors">FAQs</a>
                     </motion.nav>
 
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
@@ -209,7 +211,7 @@ export default function LandingPage() {
                 </motion.div>
 
                 {/* Dashboard Preview Illustration */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 60 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" as const }}
@@ -270,7 +272,7 @@ export default function LandingPage() {
             {/* Features Section */}
             <section id="features" className="relative z-10 border-t border-border bg-background/60 py-24 overflow-hidden">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <motion.div 
+                    <motion.div
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: "-100px" }}
@@ -285,7 +287,7 @@ export default function LandingPage() {
                         </p>
                     </motion.div>
 
-                    <motion.div 
+                    <motion.div
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: "-100px" }}
@@ -312,7 +314,7 @@ export default function LandingPage() {
             {/* How It Works Section */}
             <section id="how-it-works" className="relative z-10 border-t border-border bg-card/30 py-24 overflow-hidden">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <motion.div 
+                    <motion.div
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: "-100px" }}
@@ -327,7 +329,7 @@ export default function LandingPage() {
                         </p>
                     </motion.div>
 
-                    <motion.div 
+                    <motion.div
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: "-100px" }}
@@ -354,7 +356,7 @@ export default function LandingPage() {
             <section id="preview" className="relative z-10 border-t border-border bg-background/80 py-24 overflow-hidden">
                 <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
-                        <motion.div 
+                        <motion.div
                             initial="hidden"
                             whileInView="visible"
                             viewport={{ once: true, margin: "-100px" }}
@@ -404,7 +406,7 @@ export default function LandingPage() {
                             </div>
                         </motion.div>
 
-                        <motion.div 
+                        <motion.div
                             initial="hidden"
                             whileInView="visible"
                             viewport={{ once: true, margin: "-100px" }}
@@ -430,7 +432,7 @@ export default function LandingPage() {
             {/* Testimonials Section */}
             <section className="relative z-10 border-t border-border bg-card/40 py-24 overflow-hidden">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <motion.div 
+                    <motion.div
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: "-100px" }}
@@ -445,7 +447,7 @@ export default function LandingPage() {
                         </p>
                     </motion.div>
 
-                    <motion.div 
+                    <motion.div
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: "-100px" }}
@@ -470,7 +472,7 @@ export default function LandingPage() {
                             }
                         ].map((test, index) => (
                             <motion.div key={index} variants={fadeInUp} className="glass-card rounded-xl p-6 border border-border/60 bg-card/40 flex flex-col justify-between">
-                                <p className="text-sm text-foreground/80 italic leading-relaxed">"{test.comment}"</p>
+                                <p className="text-sm text-foreground/80 italic leading-relaxed">&ldquo;{test.comment}&rdquo;</p>
                                 <div className="mt-6 border-t border-border pt-4 flex items-center gap-3">
                                     <div className="h-8 w-8 rounded-full bg-secondary border border-border flex items-center justify-center text-xs font-mono font-bold text-muted-foreground">
                                         {test.name[0]}
@@ -489,7 +491,7 @@ export default function LandingPage() {
             {/* FAQ Section */}
             <section id="faq" className="relative z-10 border-t border-border bg-background/60 py-24 overflow-hidden">
                 <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-                    <motion.div 
+                    <motion.div
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: "-100px" }}
@@ -504,7 +506,7 @@ export default function LandingPage() {
                         </p>
                     </motion.div>
 
-                    <motion.div 
+                    <motion.div
                         initial="hidden"
                         whileInView="visible"
                         viewport={{ once: true, margin: "-100px" }}
@@ -536,52 +538,175 @@ export default function LandingPage() {
                     </motion.div>
                 </div>
             </section>
-
-            {/* Footer */}
-            <footer className="relative z-10 border-t border-border bg-background/90 py-16 text-muted-foreground text-xs">
+            {/*footer section*/}
+            <footer className="relative z-10 border-t border-border bg-background/90 py-16 text-muted-foreground text-sm">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-2 gap-8 md:grid-cols-4 text-left">
+
+                    {/* Main Footer Content */}
+                    <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4">
+
+                        {/* Brand */}
                         <div className="flex flex-col gap-4">
                             <div className="flex items-center gap-2">
-                                <Layers className="size-4 text-primary" />
-                                <span className="text-xs font-semibold tracking-tight">Resume<span className="text-primary">.ai</span></span>
+                                <Layers className="size-5 text-primary" />
+                                <span className="text-lg font-bold tracking-tight">
+                                    Resume<span className="text-primary">.AI</span>
+                                </span>
                             </div>
-                            <p className="max-w-[200px] leading-relaxed">
-                                Professional application parsing, skill mapping, and hiring optimizer built for global engineers.
+
+                            <p className="max-w-[250px] leading-relaxed">
+                                AI-powered resume analysis platform helping candidates
+                                optimize resumes, improve ATS scores, identify skill gaps,
+                                and increase interview opportunities.
                             </p>
                         </div>
+
+                        {/* Product */}
                         <div>
-                            <h4 className="font-semibold text-foreground mb-4">Product</h4>
-                            <ul className="space-y-2">
-                                <li><a href="#features" className="hover:text-foreground transition-colors">Features</a></li>
-                                <li><a href="#how-it-works" className="hover:text-foreground transition-colors">How it works</a></li>
-                                <li><span className="text-muted-foreground/70 line-through">Enterprise Solutions</span></li>
+                            <h4 className="mb-4 font-semibold text-foreground">
+                                Product
+                            </h4>
+
+                            <ul className="space-y-3">
+                                <li>
+                                    <a
+                                        href="#features"
+                                        className="hover:text-foreground transition-colors"
+                                    >
+                                        Resume Analysis
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a
+                                        href="#features"
+                                        className="hover:text-foreground transition-colors"
+                                    >
+                                        ATS Score
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a
+                                        href="#features"
+                                        className="hover:text-foreground transition-colors"
+                                    >
+                                        Skill Gap Detection
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a
+                                        href="#features"
+                                        className="hover:text-foreground transition-colors"
+                                    >
+                                        Job Match Insights
+                                    </a>
+                                </li>
                             </ul>
                         </div>
+
+                        {/* Security */}
                         <div>
-                            <h4 className="font-semibold text-foreground mb-4">Security</h4>
-                            <ul className="space-y-2">
-                                <li className="flex items-center gap-1.5"><Shield className="size-3 text-muted-foreground" /> Data Privacy Policy</li>
-                                <li>SOC2 Compliance Auditing</li>
-                                <li>Terms & Conditions</li>
+                            <h4 className="mb-4 font-semibold text-foreground">
+                                Security
+                            </h4>
+
+                            <ul className="space-y-3">
+                                <li className="flex items-center gap-2">
+                                    <Shield className="size-4" />
+                                    Data Privacy
+                                </li>
+
+                                <li>Secure File Processing</li>
+
+                                <li>No Resume Storage</li>
+
+                                <li>
+                                    <a
+                                        href="/terms"
+                                        className="hover:text-foreground transition-colors"
+                                    >
+                                        Terms & Conditions
+                                    </a>
+                                </li>
                             </ul>
                         </div>
+
+                        {/* Resources */}
                         <div>
-                            <h4 className="font-semibold text-foreground mb-4">Resources</h4>
-                            <ul className="space-y-2">
-                                <li>API System Documentation</li>
-                                <li>ATS Knowledgebase</li>
-                                <li>Developer Support Center</li>
+                            <h4 className="mb-4 font-semibold text-foreground">
+                                Resources
+                            </h4>
+
+                            <ul className="space-y-3">
+                                <li>
+                                    <a
+                                        href="#"
+                                        className="hover:text-foreground transition-colors"
+                                    >
+                                        ATS Guide
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a
+                                        href="#"
+                                        className="hover:text-foreground transition-colors"
+                                    >
+                                        Resume Tips
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a
+                                        href="#"
+                                        className="hover:text-foreground transition-colors"
+                                    >
+                                        Career Resources
+                                    </a>
+                                </li>
+
+                                <li>
+                                    <a
+                                        href="#"
+                                        className="hover:text-foreground transition-colors"
+                                    >
+                                        Developer Documentation
+                                    </a>
+                                </li>
                             </ul>
                         </div>
                     </div>
 
-                    <div className="mt-12 border-t border-border pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <p>© 2026 RESUME.AI Inc. All rights reserved.</p>
-                        <div className="flex gap-4">
-                            <span className="hover:text-foreground cursor-pointer transition-colors">Github</span>
-                            <span className="hover:text-foreground cursor-pointer transition-colors">Twitter</span>
-                            <span className="hover:text-foreground cursor-pointer transition-colors">Discord</span>
+                    {/* Bottom Footer */}
+                    <div className="mt-12 flex flex-col items-center justify-between gap-6 border-t border-border pt-8 sm:flex-row">
+
+                        <p className="text-center sm:text-left">
+                            © {new Date().getFullYear()} Resume.AI. All rights reserved.
+                        </p>
+
+                        <div className="flex items-center gap-6 text-xl">
+
+                            <a
+                                href="https://github.com/Asapukarthik"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="GitHub"
+                                className="transition-all duration-300 hover:scale-110 hover:text-foreground"
+                            >
+                                <FaGithub />
+                            </a>
+
+                            <a
+                                href="https://www.linkedin.com/in/venkata-veera-hanuma-karthik-asapu-78ba6a256/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label="LinkedIn"
+                                className="transition-all duration-300 hover:scale-110 hover:text-foreground"
+                            >
+                                <FaLinkedin />
+                            </a>
                         </div>
                     </div>
                 </div>
