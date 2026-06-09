@@ -15,6 +15,7 @@ import JobMatcherView from "@/components/dashboard/JobMatcherView";
 import InterviewView from "@/components/dashboard/InterviewView";
 import SkillsGapView from "@/components/dashboard/SkillsGapView";
 import SettingsView from "@/components/dashboard/SettingsView";
+import { AnimatePresence, motion } from "framer-motion";
 
 import {
     Layers,
@@ -27,14 +28,16 @@ import {
     MessageSquare,
     Settings,
     LogOut,
+    Loader2,
     Menu,
     X,
     Bell,
     ChevronDown,
+    ChevronLeft,
+    ChevronRight,
     Plus,
     FileText,
-    CheckCircle2,
-    Search
+    CheckCircle2
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -53,7 +56,11 @@ export default function DashboardPage() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [resumeSelectorOpen, setResumeSelectorOpen] = useState(false);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [authLoading, setAuthLoading] = useState(true);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     useEffect(() => {
         const verifyAuth = async () => {
@@ -64,7 +71,7 @@ export default function DashboardPage() {
             }
 
             try {
-                const res = await fetch("http://localhost:3001/api/auth/me", {
+                const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: {
                         "Authorization": `Bearer ${token}`
                     }
@@ -76,7 +83,7 @@ export default function DashboardPage() {
 
                 const data = await res.json();
                 updateUser(data.name, data.email);
-                
+
                 if (data.settings) {
                     updateSettings({
                         emailAlerts: data.settings.emailAlerts ?? true,
@@ -87,14 +94,33 @@ export default function DashboardPage() {
 
                 setIsAuthenticated(true);
             } catch (error) {
+                console.error(error);
                 localStorage.removeItem("token");
                 router.push("/login");
+            } finally {
+                setAuthLoading(false);
             }
         };
 
-        verifyAuth();
-    }, [router]);
 
+        verifyAuth();
+    }, [router, updateUser, updateSettings]);
+
+
+
+    // useEffect(() => {
+    //     const handleClickOutside = () => {
+    //         setNotificationsOpen(false);
+    //         setUserMenuOpen(false);
+    //         setResumeSelectorOpen(false);
+    //     };
+
+    //     document.addEventListener("click", handleClickOutside);
+
+    //     return () => {
+    //         document.removeEventListener("click", handleClickOutside);
+    //     };
+    // }, []);
     // Dynamic Navigation links
     const NAV_ITEMS = [
         { label: "Dashboard", value: "overview", icon: <LayoutDashboard className="size-4" /> },
@@ -122,7 +148,9 @@ export default function DashboardPage() {
 
     const handleSignOut = () => {
         localStorage.removeItem("token");
-        router.push("/");
+        localStorage.removeItem("user");
+
+        router.replace("/login");
     };
 
     // Responsive views mapping
@@ -149,10 +177,19 @@ export default function DashboardPage() {
         }
     };
 
-    // Close menus on route/tab updates
-    useEffect(() => {
-        setMobileMenuOpen(false);
-    }, [currentTab]);
+
+    if (authLoading) {
+        return (
+            <main className="min-h-screen flex items-center justify-center bg-background">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="size-10 animate-spin text-primary" />
+                    <p className="text-sm text-muted-foreground">
+                        Verifying session...
+                    </p>
+                </div>
+            </main>
+        );
+    }
 
     if (!isAuthenticated) {
         return null;
@@ -164,53 +201,43 @@ export default function DashboardPage() {
             <BackgroundParticles />
 
             {/* --- DESKTOP SIDEBAR NAVIGATION --- */}
-            <aside className="hidden lg:flex flex-col w-64 border-r border-border bg-background/40 backdrop-blur-xl shrink-0 relative z-20">
+            <aside className={`hidden lg:flex flex-col border-r border-border bg-background/40 backdrop-blur-xl shrink-0 relative z-20 transition-all duration-300 ${isSidebarCollapsed ? "w-20" : "w-64"}`}>
+                {/* Collapse Toggle */}
+                <button
+                    onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                    className="absolute -right-3 top-6 bg-secondary border border-border text-muted-foreground hover:text-foreground rounded-full p-1 z-30 shadow-md cursor-pointer"
+                >
+                    {isSidebarCollapsed ? <ChevronRight className="size-3.5" /> : <ChevronLeft className="size-3.5" />}
+                </button>
+
                 {/* Branding Header */}
-                <div className="flex h-16 items-center gap-2 px-6 border-b border-border">
-                    <Layers className="size-4 text-primary" />
-                    <span className="text-xs font-bold tracking-tight text-foreground">Resume<span className="text-primary">.ai</span></span>
+                <div className={`flex h-16 items-center px-6 border-b border-border transition-all overflow-hidden ${isSidebarCollapsed ? "justify-center px-0" : "gap-2"}`}>
+                    <Layers className="size-5 text-primary shrink-0" />
+                    {!isSidebarCollapsed && (
+                        <span className="text-sm font-bold tracking-tight text-foreground whitespace-nowrap">Resume<span className="text-primary">.ai</span></span>
+                    )}
                 </div>
 
                 {/* Main Link Options */}
-                <nav className="flex-1 space-y-3 px-2 py-6">
+                <nav className="flex-1 space-y-3 px-3 py-6 overflow-hidden">
                     {NAV_ITEMS.map((item) => {
                         const isActive = currentTab === item.value;
                         return (
                             <button
                                 key={item.value}
+                                title={isSidebarCollapsed ? item.label : undefined}
                                 onClick={() => setCurrentTab(item.value)}
-                                className={`w-full flex items-center gap-3 py-1.5 text-xs font-semibold text-left transition-all relative cursor-pointer ${isActive
-                                    ? "text-primary pl-5 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-primary before:rounded-r shadow-[inset_4px_0_12px_oklch(0.58_0.2_255_/_15%)]"
-                                    : "text-muted-foreground hover:text-foreground/80 pl-5 hover:pl-6"
-                                    }`}
+                                className={`w-full flex items-center py-2.5 rounded-lg text-sm font-medium transition-all relative cursor-pointer ${isActive
+                                    ? "bg-primary/10 text-primary shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                                    } ${isSidebarCollapsed ? "justify-center px-0" : "gap-3 px-4"}`}
                             >
                                 {item.icon}
-                                {item.label}
+                                {!isSidebarCollapsed && <span className="whitespace-nowrap">{item.label}</span>}
                             </button>
                         );
                     })}
                 </nav>
-
-                {/* Footer User Profile Card */}
-                <div className="border-t border-border p-4 space-y-3">
-                    <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-secondary border border-border flex items-center justify-center font-mono font-bold text-xs text-muted-foreground">
-                            {user.name[0]}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <h4 className="text-[11px] font-semibold text-foreground truncate">{user.name}</h4>
-                            <span className="text-[9px] text-muted-foreground truncate block mt-0.5">{user.email}</span>
-                        </div>
-                    </div>
-
-                    <button
-                        onClick={handleSignOut}
-                        className="w-full h-8 flex items-center gap-2 justify-center rounded-lg border border-border glass-card hover:bg-secondary hover:text-foreground transition-colors text-[10px] font-bold text-muted-foreground"
-                    >
-                        <LogOut className="size-3.5" />
-                        Disconnect Session
-                    </button>
-                </div>
             </aside>
 
             {/* --- RIGHT CONTENT PANEL --- */}
@@ -289,7 +316,7 @@ export default function DashboardPage() {
                         {/* Notifications Menu */}
                         <div className="relative">
                             <button
-                                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                                onClick={() => { setNotificationsOpen(!notificationsOpen); setUserMenuOpen(false); }}
                                 className="h-8 w-8 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground flex items-center justify-center relative cursor-pointer"
                             >
                                 <Bell className="size-4" />
@@ -317,12 +344,64 @@ export default function DashboardPage() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Top Header User Profile */}
+                        <div className="relative ml-2">
+                            <button
+                                onClick={() => { setUserMenuOpen(!userMenuOpen); setNotificationsOpen(false); }}
+                                className="h-8 w-8 rounded-full bg-secondary border border-border flex items-center justify-center font-mono font-bold text-xs text-foreground cursor-pointer hover:border-primary/50 transition-colors"
+                            >
+                                {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                            </button>
+
+                            {userMenuOpen && (
+                                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-border bg-card p-2 shadow-2xl z-40 text-left">
+                                    <div className="px-3 py-2 border-b border-border mb-1">
+                                        <h4 className="text-xs font-semibold text-foreground truncate">{user.name}</h4>
+                                        <span className="text-[10px] text-muted-foreground truncate block mt-0.5">{user.email}</span>
+                                    </div>
+                                    <button
+                                        onClick={() => { setUserMenuOpen(false); setCurrentTab("settings"); }}
+                                        className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-secondary/60 hover:text-foreground transition-colors cursor-pointer"
+                                    >
+                                        <Settings className="size-3.5" /> Settings
+                                    </button>
+                                    <button
+                                        onClick={handleSignOut}
+                                        className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors mt-1 cursor-pointer"
+                                    >
+                                        <LogOut className="size-3.5" /> Disconnect Session
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </header>
 
                 {/* --- MAIN PAGE SCROLLABLE CONTENT --- */}
                 <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-16">
-                    {renderActiveView()}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={currentTab}
+                            initial={{
+                                opacity: 0,
+                                y: 20,
+                            }}
+                            animate={{
+                                opacity: 1,
+                                y: 0,
+                            }}
+                            exit={{
+                                opacity: 0,
+                                y: -20,
+                            }}
+                            transition={{
+                                duration: 0.25,
+                            }}
+                        >
+                            {renderActiveView()}
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
             </div>
 
@@ -371,7 +450,7 @@ export default function DashboardPage() {
                         <div className="border-t border-border p-4 space-y-3">
                             <div className="flex items-center gap-3">
                                 <div className="h-8 w-8 rounded-full bg-secondary border border-border flex items-center justify-center font-mono font-bold text-xs text-muted-foreground">
-                                    {user.name[0]}
+                                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
                                 </div>
                                 <div className="min-w-0">
                                     <h4 className="text-[11px] font-semibold text-foreground truncate">{user.name}</h4>
