@@ -9,8 +9,7 @@ import {
     ArrowUpRight,
     ArrowDownRight,
     Minus,
-    Calendar,
-    Briefcase
+    Calendar
 } from "lucide-react";
 
 export default function OverviewView() {
@@ -34,7 +33,7 @@ export default function OverviewView() {
                 </div>
                 <button
                     onClick={() => setCurrentTab("upload")}
-                    className="self-start sm:self-center h-9 px-4 btn-primary text-xs px-4 transition-all flex items-center gap-1.5 shadow-sm active:translate-y-[1px]"
+                    className="self-start sm:self-center h-10 px-5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold transition-all shadow-lg hover:shadow-indigo-500/25 flex items-center gap-2 hover:-translate-y-0.5"
                 >
                     <Plus className="size-4" />
                     New Scan
@@ -44,39 +43,59 @@ export default function OverviewView() {
             {/* Quick Metrics Grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {/* Metric 1 */}
-                <div className="rounded-xl glass-card p-6 space-y-4">
+                <div className="rounded-xl glass-card glass-card-hover p-8 space-y-4">
                     <div className="flex items-center justify-between text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
                         <span>ATS Compliance</span>
                         <span className="flex items-center gap-0.5 text-green-400 font-bold font-sans">
                             <ArrowUpRight className="size-3" /> +4%
                         </span>
                     </div>
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-semibold tracking-tight font-mono text-foreground">
-                            {activeResume ? `${activeResume.score}%` : "—"}
-                        </span>
+                    <div className="flex items-center gap-4">
+                        <div className="relative size-16 shrink-0">
+                            <svg className="size-full -rotate-90">
+                                <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="none" className="text-secondary" />
+                                <circle 
+                                    cx="32" cy="32" r="28" stroke="url(#atsGradient)" strokeWidth="6" fill="none" 
+                                    strokeDasharray={2 * Math.PI * 28} 
+                                    strokeDashoffset={2 * Math.PI * 28 - ((activeResume?.score || 0) / 100) * (2 * Math.PI * 28)} 
+                                    className="transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]" 
+                                />
+                                <defs>
+                                    <linearGradient id="atsGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#8b5cf6" />
+                                        <stop offset="100%" stopColor="#6366f1" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center font-bold font-mono text-sm text-foreground">
+                                {activeResume ? `${activeResume.score}%` : "—"}
+                            </div>
+                        </div>
+                        <p className="text-[10px] text-muted-foreground leading-normal font-sans">Based on active parsed profile.</p>
                     </div>
-                    <p className="text-[10px] text-muted-foreground leading-normal font-sans">Based on active parsed profile.</p>
                 </div>
 
                 {/* Metric 2 */}
-                <div className="rounded-xl glass-card p-6 space-y-4">
+                <div className="rounded-xl glass-card glass-card-hover p-8 space-y-4">
                     <div className="flex items-center justify-between text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
                         <span>Skills Matching</span>
                         <span className="flex items-center gap-0.5 text-muted-foreground font-bold font-sans">
                             <Minus className="size-3" /> Stable
                         </span>
                     </div>
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-semibold tracking-tight font-mono text-foreground">
+                    <div className="space-y-2">
+                        <span className="text-4xl font-extrabold tracking-tight font-mono text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
                             {activeResume ? `${activeResume.skillsMatch}%` : "—"}
                         </span>
+                        <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
+                            <div className="bg-gradient-to-r from-blue-400 to-cyan-400 h-full rounded-full transition-all duration-1000" style={{ width: `${activeResume?.skillsMatch || 0}%` }} />
+                        </div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground leading-normal">Overall compatibility rating.</p>
+                    <p className="text-[10px] text-muted-foreground leading-normal mt-2">Overall compatibility rating.</p>
                 </div>
 
                 {/* Metric 3 */}
-                <div className="rounded-xl glass-card p-6 space-y-4">
+                <div className="rounded-xl glass-card glass-card-hover p-8 space-y-4">
                     <div className="flex items-center justify-between text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
                         <span>Matched Keywords</span>
                         <span className="flex items-center gap-0.5 text-green-400 font-bold font-sans">
@@ -84,7 +103,7 @@ export default function OverviewView() {
                         </span>
                     </div>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-semibold tracking-tight font-mono text-foreground">
+                        <span className="text-4xl font-extrabold tracking-tight font-mono text-foreground">
                             {activeResume ? activeResume.matchedKeywords : "0"}
                         </span>
                     </div>
@@ -92,15 +111,15 @@ export default function OverviewView() {
                 </div>
 
                 {/* Metric 4 */}
-                <div className="rounded-xl glass-card p-6 space-y-4">
+                <div className="rounded-xl glass-card glass-card-hover p-8 space-y-4">
                     <div className="flex items-center justify-between text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
                         <span>Missing Gaps</span>
-                        <span className="flex items-center gap-0.5 text-green-400 font-bold font-sans">
+                        <span className="flex items-center gap-0.5 text-red-400 font-bold font-sans">
                             <ArrowDownRight className="size-3" /> -3
                         </span>
                     </div>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-semibold tracking-tight font-mono text-foreground">
+                        <span className="text-4xl font-extrabold tracking-tight font-mono text-foreground">
                             {activeResume ? activeResume.missingKeywords : "0"}
                         </span>
                     </div>
@@ -115,11 +134,11 @@ export default function OverviewView() {
                 <div className="lg:col-span-2 space-y-8">
                     {/* Active Resume summary & quick details */}
                     {activeResume ? (
-                        <div className="rounded-xl glass-card p-6 space-y-6">
+                        <div className="rounded-xl glass-card glass-card-hover p-8 space-y-6">
                             {/* Card sub header */}
                             <div className="flex items-center justify-between border-b border-border pb-4">
                                 <div className="flex items-center gap-4">
-                                    <div className="inline-flex size-10 items-center justify-center rounded-xl glass-card">
+                                    <div className="inline-flex size-10 items-center justify-center rounded-xl glass-card bg-secondary/30">
                                         <FileText className="size-4.5 text-muted-foreground" />
                                     </div>
                                     <div>
@@ -152,7 +171,7 @@ export default function OverviewView() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6 border-t border-border">
                                 <div className="space-y-3">
                                     <h4 className="text-[10px] font-semibold text-foreground/80 uppercase tracking-wider flex items-center gap-1.5 font-mono">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-neutral-400" />
+                                        <span className="h-1.5 w-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
                                         Compliance Strengths
                                     </h4>
                                     <ul className="space-y-2 text-xs text-muted-foreground font-sans leading-relaxed">
@@ -167,7 +186,7 @@ export default function OverviewView() {
 
                                 <div className="space-y-3">
                                     <h4 className="text-[10px] font-semibold text-foreground/80 uppercase tracking-wider flex items-center gap-1.5 font-mono">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-neutral-600" />
+                                        <span className="h-1.5 w-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
                                         Identified Vulnerabilities
                                     </h4>
                                     <ul className="space-y-2 text-xs text-muted-foreground font-sans leading-relaxed">
@@ -190,7 +209,7 @@ export default function OverviewView() {
                             </p>
                             <button
                                 onClick={() => setCurrentTab("upload")}
-                                className="mt-4 h-9 rounded-xl bg-secondary border border-border text-xs font-semibold hover:bg-neutral-850 px-4 text-foreground/80 cursor-pointer"
+                                className="mt-4 h-9 rounded-xl bg-secondary border border-border text-xs font-semibold hover:bg-neutral-850 px-4 text-foreground/80 cursor-pointer transition-all hover:scale-105"
                             >
                                 Parse First File
                             </button>
@@ -199,7 +218,7 @@ export default function OverviewView() {
 
                     {/* SVG Sparkline ATS History Trend */}
                     {activeResume && (
-                        <div className="rounded-xl glass-card p-6 space-y-4">
+                        <div className="rounded-xl glass-card glass-card-hover p-8 space-y-4">
                             <div className="flex items-center justify-between">
                                 <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">Score Compliance History</span>
                                 <span className="text-[10px] text-green-400 font-mono font-bold">+4.2% overall growth</span>
@@ -215,13 +234,20 @@ export default function OverviewView() {
                                     {/* Line path */}
                                     <path 
                                         d="M 0 50 Q 50 45 100 48 T 200 35 T 300 20 T 400 32 T 500 12" 
-                                        stroke="rgba(255,255,255,0.2)" 
-                                        strokeWidth="2" 
+                                        stroke="url(#sparklineGradient)" 
+                                        strokeWidth="2.5" 
                                         strokeLinecap="round"
+                                        className="drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]"
                                     />
+                                    <defs>
+                                        <linearGradient id="sparklineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" stopColor="#9ca3af" />
+                                            <stop offset="100%" stopColor="#f3f4f6" />
+                                        </linearGradient>
+                                    </defs>
                                     {/* Active point indicator */}
                                     <circle cx="500" cy="12" r="3.5" fill="#ffffff" />
-                                    <circle cx="500" cy="12" r="7" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+                                    <circle cx="500" cy="12" r="7" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" />
                                 </svg>
                             </div>
                             <div className="flex justify-between items-center text-[9px] font-mono text-muted-foreground">
@@ -233,41 +259,41 @@ export default function OverviewView() {
                 </div>
 
                 {/* Right side inventory panels */}
-                <div className="space-y-6">
+                <div className="space-y-8">
                     {/* Catalog list */}
-                    <div className="rounded-xl glass-card p-6 space-y-4">
+                    <div className="rounded-xl glass-card glass-card-hover p-8 space-y-4">
                         <div className="flex items-center justify-between border-b border-border pb-3">
                             <h4 className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">Scanned Inventory</h4>
                             <button
                                 onClick={() => setCurrentTab("history")}
-                                className="text-[10px] text-muted-foreground hover:text-foreground font-semibold cursor-pointer"
+                                className="text-[10px] text-muted-foreground hover:text-foreground font-semibold cursor-pointer transition-colors"
                             >
                                 View All ({resumes.length})
                             </button>
                         </div>
 
                         {resumes.length > 0 ? (
-                            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                            <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1">
                                 {resumes.map((res) => (
                                     <div
                                         key={res.id}
                                         onClick={() => handleSelectResume(res.id)}
-                                        className={`group rounded-lg border p-3 flex items-center justify-between cursor-pointer transition-all ${
+                                        className={`group rounded-xl border p-3.5 flex items-center justify-between cursor-pointer transition-all ${
                                             activeResume?.id === res.id
-                                                ? "border-neutral-700 bg-secondary/20"
-                                                : "border-border bg-card hover:border-border"
+                                                ? "border-primary/50 bg-secondary/30 shadow-sm"
+                                                : "border-border bg-card/50 hover:border-primary/30 hover:bg-secondary/20 hover:-translate-y-0.5 hover:shadow-md"
                                         }`}
                                     >
                                         <div className="min-w-0 pr-2 space-y-0.5">
-                                            <h5 className="text-xs font-semibold text-foreground/80 truncate group-hover:text-foreground font-mono">
+                                            <h5 className="text-xs font-semibold text-foreground/90 truncate group-hover:text-foreground font-mono transition-colors">
                                                 {res.name}
                                             </h5>
                                             <span className="text-[9px] text-muted-foreground font-mono block">
                                                 {res.date}
                                             </span>
                                         </div>
-                                        <div className={`h-6 px-2 shrink-0 rounded flex items-center justify-center text-[10px] font-bold font-mono border ${
-                                            res.score >= 80 ? "bg-secondary text-foreground/80 border-border" : "bg-card text-muted-foreground border-border"
+                                        <div className={`h-7 px-2.5 shrink-0 rounded-lg flex items-center justify-center text-[10px] font-bold font-mono border transition-colors ${
+                                            res.score >= 80 ? "bg-green-500/10 text-green-400 border-green-500/20" : "bg-card text-muted-foreground border-border group-hover:border-primary/30 group-hover:text-foreground/80"
                                         }`}>
                                             {res.score}%
                                         </div>
@@ -282,17 +308,17 @@ export default function OverviewView() {
                     </div>
 
                     {/* Role matcher promotion */}
-                    <div className="rounded-xl glass-card p-6 space-y-4">
-                        <div className="space-y-1">
+                    <div className="rounded-xl glass-card glass-card-hover p-8 space-y-5 bg-gradient-to-br from-card to-card/50">
+                        <div className="space-y-1.5">
                             <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider block">Job Matcher</span>
-                            <h4 className="text-xs font-semibold text-foreground font-sans">Role Alignment Engine</h4>
+                            <h4 className="text-sm font-semibold text-foreground font-sans">Role Alignment Engine</h4>
                             <p className="text-[11px] text-muted-foreground leading-relaxed font-sans">
                                 Paste job descriptions side-by-side to identify semantic discrepancies and required keyword gaps immediately.
                             </p>
                         </div>
                         <button
                             onClick={() => setCurrentTab("matcher")}
-                            className="w-full h-8 rounded-lg bg-secondary border border-border hover:bg-accent hover:text-foreground transition-all text-xs font-semibold text-foreground/80 flex items-center justify-center gap-1 cursor-pointer"
+                            className="w-full h-9 rounded-lg bg-secondary/80 border border-border hover:bg-primary hover:border-primary hover:text-primary-foreground transition-all text-xs font-semibold text-foreground/80 flex items-center justify-center gap-1 cursor-pointer hover:-translate-y-0.5 hover:shadow-lg shadow-sm"
                         >
                             Open Matcher
                         </button>

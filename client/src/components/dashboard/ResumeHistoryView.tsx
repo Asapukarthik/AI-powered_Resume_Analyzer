@@ -90,7 +90,7 @@ export default function ResumeHistoryView() {
                     ].map((btn) => (
                         <button
                             key={btn.value}
-                            onClick={() => setScoreFilter(btn.value as any)}
+                            onClick={() => setScoreFilter(btn.value as "all" | "high" | "mid" | "low")}
                             className={`h-7 px-2.5 rounded-md text-[10px] font-semibold transition-all cursor-pointer ${
                                 scoreFilter === btn.value
                                     ? "bg-primary/15 border border-primary/30 text-primary"

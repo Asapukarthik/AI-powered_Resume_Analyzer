@@ -75,168 +75,27 @@ interface ResumeContextType {
 
 const ResumeContext = createContext<ResumeContextType | undefined>(undefined);
 
-// Initial Rich Mock Resumes
-const INITIAL_RESUMES: ResumeData[] = [
-    {
-        id: "res-1",
-        name: "DevOps_Engineer_Senior_2026.pdf",
-        date: "May 24, 2026",
-        size: "1.4 MB",
-        score: 87,
-        skillsMatch: 89,
-        matchedKeywords: 28,
-        missingKeywords: 4,
-        summary: "Highly skilled DevOps Engineer with 6+ years of experience leading cloud infrastructure transformations. Expert in AWS, Kubernetes containerization, and writing robust Terraform infrastructure-as-code modules. Strong track record of cutting deployment failures by 40% and optimizing cloud expenditure.",
-        strengths: [
-            "Extensive expertise in Docker and highly scalable multi-cluster Kubernetes deployments.",
-            "Strong infrastructure-as-code implementation using Terraform, reducing manual errors by 90%.",
-            "Advanced experience designing high-speed, zero-downtime CI/CD build pipelines using GitHub Actions.",
-            "Great focus on cloud budget optimizations, slashing unnecessary AWS spend by 30%."
-        ],
-        weaknesses: [
-            "Relatively minimal hands-on coding experience in systems-level programming (e.g. Rust/Go).",
-            "Fewer formal certifications in security auditing standards (such as ISO 27001 or SOC2).",
-            "Limited exposure to enterprise multi-cloud setups utilizing Google Cloud or Microsoft Azure."
-        ],
-        keywords: [
-            { word: "Kubernetes", category: "matched", count: 8 },
-            { word: "AWS", category: "matched", count: 12 },
-            { word: "Terraform", category: "matched", count: 6 },
-            { word: "CI/CD", category: "matched", count: 5 },
-            { word: "Docker", category: "matched", count: 4 },
-            { word: "Python", category: "matched", count: 3 },
-            { word: "Prometheus", category: "matched", count: 2 },
-            { word: "Rust", category: "missing", count: 0 },
-            { word: "Azure", category: "missing", count: 0 },
-            { word: "SOC2", category: "missing", count: 0 },
-            { word: "Git", category: "overused", count: 14 },
-            { word: "Deploy", category: "overused", count: 18 }
-        ],
-        recommendedSkills: ["Go (Golang)", "Google Cloud Platform (GCP)", "SOC2 Security Standards", "Helm Charts"],
-        suggestedRoadmap: [
-            {
-                step: 1,
-                title: "Master Go (Golang) Programming",
-                description: "Deepen understanding of systems programming, building custom CLI tools and Kubernetes operators using Go controllers.",
-                duration: "4 weeks",
-                skills: ["Go Syntax", "Goroutines", "Kubernetes client-go"]
-            },
-            {
-                step: 2,
-                title: "GCP Multi-cloud Foundations",
-                description: "Earn the GCP Professional Cloud Architect certification to handle advanced hybrid-cloud environments.",
-                duration: "6 weeks",
-                skills: ["GKE", "GCP IAM", "Cloud Spanner"]
-            },
-            {
-                step: 3,
-                title: "Enterprise Compliance & SOC2 Auditing",
-                description: "Learn how to architect networks and access policies that comply with security certifications like SOC2 and ISO 27001.",
-                duration: "3 weeks",
-                skills: ["Network Isolation", "Vulnerability Scanning", "Vault Secrets"]
-            }
-        ],
-        interviewQuestions: [
-            {
-                id: "q-1",
-                category: "technical",
-                question: "How do you manage state files and team collaboration securely in Terraform?",
-                answer: "I leverage Terraform Backend (specifically AWS S3 for storage and DynamoDB for state locking). This prevents race conditions during concurrent runs. Additionally, the bucket is encrypted at rest using KMS, has versioning enabled, and has public access blocked completely."
-            },
-            {
-                id: "q-2",
-                category: "technical",
-                question: "Explain the difference between a Kubernetes Pod, Deployment, and StatefulSet.",
-                answer: "A Pod is the smallest deployable unit containing one or more containers. A Deployment manages stateless pods, automating rolling updates and replica scaling. A StatefulSet is used for stateful applications, providing stable persistent network identifiers and guaranteed ordering of volume attachments."
-            },
-            {
-                id: "q-3",
-                category: "hr",
-                question: "Describe a situation where you had an architectural disagreement with your team. How did you resolve it?",
-                answer: "In a previous project, some team members preferred manual AWS console tweaks for quick hotfixes, whereas I insisted on enforcing 100% Terraform compliance. I resolved this by explaining the risks of environment drift and showing how drift-detection pipelines notify us automatically. I conducted a short workshop, created reusable templates, and made the transition seamless for everyone."
-            },
-            {
-                id: "q-4",
-                category: "project",
-                question: "Can you walk us through the CI/CD pipeline you designed which reduced build times?",
-                answer: "Certainly. It was a GitHub Actions-based build system. By modularizing our docker builds, caching dependency layers (npm and python-pip virtual environments), running test suites in parallel matrix containers, and pushing only modified assets, we cut average release build cycles from 22 minutes to just under 5 minutes."
-            }
-        ]
-    },
-    {
-        id: "res-2",
-        name: "FullStack_React_Developer_Resume.pdf",
-        date: "May 10, 2026",
-        size: "950 KB",
-        score: 64,
-        skillsMatch: 60,
-        matchedKeywords: 14,
-        missingKeywords: 8,
-        summary: "Passionate Full-Stack Developer with 2+ years of experience working primarily on frontend architectures using React and Next.js. Decent familiarity with Express Node backends. Energetic team player looking to contribute clean code to scaling systems.",
-        strengths: [
-            "Highly proficient with modern React, hooks, state managers (Redux), and responsive Tailwind design.",
-            "Strong understanding of semantic HTML layouts and CSS layouts.",
-            "Solid experience with RESTful API structures and JSON data parsing."
-        ],
-        weaknesses: [
-            "Lacks performance-optimization skills like database indexing, pagination, and query profiling.",
-            "Minimal experience with containerization tools (Docker) or serverless cloud infrastructure.",
-            "No formal unit or integration testing configurations (Jest, React Testing Library, Cypress)."
-        ],
-        keywords: [
-            { word: "React", category: "matched", count: 14 },
-            { word: "Tailwind CSS", category: "matched", count: 8 },
-            { word: "Node.js", category: "matched", count: 4 },
-            { word: "JavaScript", category: "matched", count: 10 },
-            { word: "Express", category: "matched", count: 3 },
-            { word: "Docker", category: "missing", count: 0 },
-            { word: "Jest", category: "missing", count: 0 },
-            { word: "PostgreSQL", category: "missing", count: 0 },
-            { word: "TypeScript", category: "missing", count: 0 },
-            { word: "Next.js", category: "missing", count: 0 },
-            { word: "Create", category: "overused", count: 22 },
-            { word: "Code", category: "overused", count: 19 }
-        ],
-        recommendedSkills: ["TypeScript", "Next.js", "Docker", "Jest & Cypress", "PostgreSQL"],
-        suggestedRoadmap: [
-            {
-                step: 1,
-                title: "Upgrade to TypeScript",
-                description: "Migrate basic JavaScript projects to TypeScript. Master static typing, interfaces, generics, and custom type definitions to avoid runtime errors.",
-                duration: "3 weeks",
-                skills: ["TS Config", "Generics", "Type Safeguarding"]
-            },
-            {
-                step: 2,
-                title: "Next.js Framework & Server Components",
-                description: "Adopt App Router, Server Actions, Server Component strategies, and static/dynamic rendering parameters.",
-                duration: "4 weeks",
-                skills: ["App Router", "SSR / ISR", "Server Actions"]
-            },
-            {
-                step: 3,
-                title: "Add Unit & Integration Testing",
-                description: "Learn Jest and React Testing Library for frontend component checks, and write end-to-end user flows in Cypress.",
-                duration: "3 weeks",
-                skills: ["Mocking APIs", "Component Testing", "E2E Testing"]
-            }
-        ],
-        interviewQuestions: [
-            {
-                id: "q-201",
-                category: "technical",
-                question: "Explain the difference between React Client and Server Components in Next.js.",
-                answer: "Server Components are executed and rendered on the server, sending pre-rendered HTML to the client which improves SEO and performance. They cannot use state, effects, or browser APIs. Client Components (marked with 'use client') are sent to the browser for hydration, supporting active user interactions, state, and hooks."
-            },
-            {
-                id: "q-202",
-                category: "hr",
-                question: "What is your process for learning a new technology rapidly?",
-                answer: "I start by building a small, simple project (like a todo app or dashboard widgets) instead of just reading tutorials. I then review the official documentation, analyze open-source code repositories implementing that tech, and document my bugs and findings. Hands-on error debugging is my fastest way to learn."
-            }
-        ]
-    }
-];
+// ---------------------------------------------------------------------------
+// Backend API response shape (used for mapping only — not exported)
+// ---------------------------------------------------------------------------
+interface BackendResume {
+    id: string;
+    name: string;
+    createdAt: string;
+    size?: number;
+    score?: number;
+    skillsMatch?: number;
+    matchedKeywordsCount?: number;
+    missingKeywordsCount?: number;
+    summary?: string;
+    strengths?: string[];
+    weaknesses?: string[];
+    keywords?: Keyword[];
+    recommendedSkills?: string[];
+    suggestedRoadmap?: RoadmapStep[];
+    interviewQuestions?: Question[];
+}
+
 
 export function ResumeProvider({ children }: { children: React.ReactNode }) {
     const [currentTab, setCurrentTab] = useState<string>("overview");
@@ -271,7 +130,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
                     const data = await res.json();
                     
                     // Map backend data to frontend ResumeData interface
-                    const mappedResumes: ResumeData[] = data.map((r: any) => ({
+                    const mappedResumes: ResumeData[] = data.map((r: BackendResume) => ({
                         id: r.id,
                         name: r.name,
                         date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
@@ -346,10 +205,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
                 throw new Error(data.error || "Failed to upload and analyze resume");
             }
 
-            // Map backend response to ResumeData
-            // Backend returns: { resume: {...}, analysis: { matchPercentage, missingSkills, suggestions } }
             const resumeRecord = data.resume;
-            const jobMatchRecord = data.analysis;
             
             const newResume: ResumeData = {
                 id: resumeRecord.id,

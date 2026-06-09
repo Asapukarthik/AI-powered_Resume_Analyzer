@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 export default function InterviewView() {
-    const { activeResume, setCurrentTab } = useResumeStore();
+    const { activeResume, setActiveResume, setCurrentTab } = useResumeStore();
     const [activeCategory, setActiveCategory] = useState<"all" | "technical" | "hr" | "project">("all");
     const [openQuestionId, setOpenQuestionId] = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -61,7 +61,10 @@ export default function InterviewView() {
                 : "I leverage Redis (Redlock algorithm) or database-level optimistic concurrency controls. For strict financial states, a transactional outbox pattern combined with database constraints ensures idempotent transaction execution."
         };
 
-        activeResume.interviewQuestions = [newMockQ, ...activeResume.interviewQuestions];
+        setActiveResume({
+            ...activeResume,
+            interviewQuestions: [newMockQ, ...activeResume.interviewQuestions]
+        });
         setOpenQuestionId(newMockQ.id);
         setIsGenerating(false);
     };
@@ -109,7 +112,7 @@ export default function InterviewView() {
                 ].map((btn) => (
                     <button
                         key={btn.value}
-                        onClick={() => setActiveCategory(btn.value as any)}
+                        onClick={() => setActiveCategory(btn.value as "all" | "technical" | "hr" | "project")}
                         className={`h-7 px-2.5 rounded-md text-[10px] font-semibold transition-colors cursor-pointer ${
                             activeCategory === btn.value
                                 ? "bg-primary/15 border border-primary/30 text-primary"
@@ -164,7 +167,7 @@ export default function InterviewView() {
                 <div className="rounded-xl border border-dashed border-border bg-card/30 p-12 text-center max-w-md mx-auto my-10 space-y-2">
                     <h4 className="text-xs font-semibold text-muted-foreground font-sans">No matching questions</h4>
                     <p className="text-xs text-muted-foreground max-w-[240px] leading-relaxed mx-auto">
-                        There are no questions in this specific tab. Click "Generate Questions" to create custom targets.
+                        There are no questions in this specific tab. Click &ldquo;Generate Questions&rdquo; to create custom targets.
                     </p>
                 </div>
             )}

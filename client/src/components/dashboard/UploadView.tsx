@@ -15,6 +15,7 @@ import {
 export default function UploadView() {
     const { uploadResume, isUploading, uploadProgress, setCurrentTab } = useResumeStore();
     const [uploadedFile, setUploadedFile] = useState<{ name: string; size: string } | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [error, setError] = useState<string>("");
     const [success, setSuccess] = useState<boolean>(false);
 
@@ -43,14 +44,22 @@ export default function UploadView() {
 
         const sizeFormatted = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
         setUploadedFile({ name: file.name, size: sizeFormatted });
+        setSelectedFile(file);
+    }, []);
 
+    const handleProceed = async () => {
+        if (!selectedFile) return;
+        
+        setError("");
         try {
-            await uploadResume(file, jobDescription);
+            await uploadResume(selectedFile, jobDescription);
             setSuccess(true);
-        } catch (e: any) {
-            setError(e.message || "Pipeline error while parsing. Please check encoding parameters.");
+            setSelectedFile(null);
+        } catch (e: unknown) {
+            const msg = e instanceof Error ? e.message : "Pipeline error while parsing. Please check encoding parameters.";
+            setError(msg);
         }
-    }, [uploadResume, jobDescription]);
+    };
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -88,32 +97,63 @@ export default function UploadView() {
                         />
                     </div>
 
-                    <div
-                        {...getRootProps()}
-                        className={`rounded-xl border border-dashed p-12 text-center cursor-pointer transition-all ${
-                            isDragActive
-                                ? "border-neutral-500 bg-card/80"
-                                : "border-border bg-card/30 hover:border-neutral-700"
-                        }`}
-                    >
-                        <input {...getInputProps()} />
-                        <div className="flex flex-col items-center justify-center space-y-4">
-                            <div className="inline-flex size-10 items-center justify-center rounded-xl glass-card">
-                                <Upload className="size-4.5 text-muted-foreground" />
-                            </div>
-                            <div className="space-y-1">
-                                <h3 className="text-xs font-semibold text-foreground">
-                                    {isDragActive ? "Drop document here" : "Drag and drop resume file"}
-                                </h3>
-                                <p className="text-[10px] text-muted-foreground max-w-[280px] leading-relaxed mx-auto">
-                                    PDF or DOCX formats supported. Up to 5MB file capacity limits.
-                                </p>
-                            </div>
-                            <div className="h-8 rounded-lg bg-secondary border border-border px-4 text-[10px] font-bold text-foreground/80 hover:bg-accent transition-colors flex items-center justify-center">
-                                Browse Files
+                    {!selectedFile ? (
+                        <div
+                            {...getRootProps()}
+                            className={`rounded-xl border border-dashed p-12 text-center cursor-pointer transition-all ${
+                                isDragActive
+                                    ? "border-neutral-500 bg-card/80"
+                                    : "border-border bg-card/30 hover:border-neutral-700"
+                            }`}
+                        >
+                            <input {...getInputProps()} />
+                            <div className="flex flex-col items-center justify-center space-y-4">
+                                <div className="inline-flex size-10 items-center justify-center rounded-xl glass-card">
+                                    <Upload className="size-4.5 text-muted-foreground" />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-xs font-semibold text-foreground">
+                                        {isDragActive ? "Drop document here" : "Drag and drop resume file"}
+                                    </h3>
+                                    <p className="text-[10px] text-muted-foreground max-w-[280px] leading-relaxed mx-auto">
+                                        PDF or DOCX formats supported. Up to 5MB file capacity limits.
+                                    </p>
+                                </div>
+                                <div className="h-8 rounded-lg bg-secondary border border-border px-4 text-[10px] font-bold text-foreground/80 hover:bg-accent transition-colors flex items-center justify-center">
+                                    Browse Files
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    ) : (
+                        <div className="rounded-xl border border-border bg-card p-6 flex flex-col space-y-4">
+                            <div className="flex items-center justify-between border-b border-border pb-4">
+                                <div className="flex items-center gap-3">
+                                    <FileText className="size-5 text-primary" />
+                                    <div>
+                                        <h4 className="text-xs font-semibold text-foreground/90 font-mono">{uploadedFile?.name}</h4>
+                                        <span className="text-[9px] text-muted-foreground font-mono mt-0.5 block">{uploadedFile?.size}</span>
+                                    </div>
+                                </div>
+                                <div className="rounded bg-secondary/50 border border-border px-2 py-0.5 text-[9px] text-muted-foreground font-mono font-semibold">
+                                    READY
+                                </div>
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setSelectedFile(null)}
+                                    className="flex-1 h-9 rounded-lg bg-secondary border border-border hover:bg-accent hover:text-foreground transition-all text-xs font-semibold text-foreground/80 cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleProceed}
+                                    className="flex-1 h-9 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-500 hover:to-indigo-500 transition-all text-xs font-semibold cursor-pointer shadow-md hover:shadow-indigo-500/25 active:translate-y-[1px]"
+                                >
+                                    Proceed to Analysis
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -213,7 +253,7 @@ export default function UploadView() {
                     <div className="space-y-1.5">
                         <h5 className="font-semibold text-foreground/80">Section Headers</h5>
                         <p className="text-[11px] text-muted-foreground">
-                            Use standard layout markers like "Experience", "Education", and "Skills". Non-standard tags confuse screening parsers.
+                            Use standard layout markers like &ldquo;Experience&rdquo;, &ldquo;Education&rdquo;, and &ldquo;Skills&rdquo;. Non-standard tags confuse screening parsers.
                         </p>
                     </div>
                     <div className="space-y-1.5">

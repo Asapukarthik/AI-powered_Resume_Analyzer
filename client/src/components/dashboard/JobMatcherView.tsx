@@ -7,7 +7,6 @@ import {
     Sparkles, 
     Loader2, 
     AlertCircle, 
-    BookOpen,
     CornerDownRight
 } from "lucide-react";
 

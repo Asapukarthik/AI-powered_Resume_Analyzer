@@ -2,11 +2,8 @@
 
 import React, { useState } from "react";
 import { useResumeStore } from "@/hooks/useResumeStore";
-import { 
-    User, 
-    Bell, 
-    Shield, 
-    Cpu, 
+import {
+    User,
     Check,
     AlertTriangle,
     Mail,
@@ -15,15 +12,15 @@ import {
 } from "lucide-react";
 
 export default function SettingsView() {
-    const { user, updateUser, settings, updateSettings } = useResumeStore();
-    
+    const { user, updateUser } = useResumeStore();
+
     // Form fields
     const [name, setName] = useState(user.name);
     const [email, setEmail] = useState(user.email);
-    
+
     const [oldPassword, setOldPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
-    
+
     const [saveSuccess, setSaveSuccess] = useState(false);
     const [pwSuccess, setPwSuccess] = useState(false);
 
@@ -40,7 +37,7 @@ export default function SettingsView() {
                 body: JSON.stringify({ name, email })
             });
             if (!res.ok) throw new Error("Failed to save profile");
-            
+
             updateUser(name, email);
             setSaveSuccess(true);
             setTimeout(() => setSaveSuccess(false), 2000);
@@ -67,25 +64,6 @@ export default function SettingsView() {
             setNewPassword("");
             setPwSuccess(true);
             setTimeout(() => setPwSuccess(false), 2000);
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
-    const handleUpdateSettings = async (newSettings: Partial<typeof settings>) => {
-        try {
-            const token = localStorage.getItem("token");
-            const res = await fetch("http://localhost:3001/api/users/settings", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
-                body: JSON.stringify(newSettings)
-            });
-            if (!res.ok) throw new Error("Failed to update settings");
-            
-            updateSettings(newSettings);
         } catch (error) {
             console.error(error);
         }
@@ -220,62 +198,6 @@ export default function SettingsView() {
                                 </button>
                             </div>
                         </form>
-                    </div>
-
-                    {/* Platform Preferences & Model Selector */}
-                    <div className="rounded-xl glass-card p-6 space-y-5">
-                        <h3 className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-2 border-b border-border pb-3">
-                            <Cpu className="size-4 text-muted-foreground" />
-                            ANALYTICS PREFERENCES
-                        </h3>
-
-                        {/* Model selector */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div className="space-y-0.5">
-                                <h4 className="text-xs font-semibold text-foreground">Active AI Model Model</h4>
-                                <p className="text-[10px] text-muted-foreground">Configure parameters used to run compliance matching.</p>
-                            </div>
-                            <select
-                                value={settings.model}
-                                onChange={(e) => handleUpdateSettings({ model: e.target.value })}
-                                className="h-8 px-3 rounded-lg bg-secondary border border-border text-xs text-foreground/80 outline-none focus:border-neutral-700 cursor-pointer"
-                            >
-                                <option value="gpt-4o">OpenAI GPT-4o</option>
-                                <option value="claude-3-5">Anthropic Claude 3.5 Sonnet</option>
-                                <option value="llama-3">Meta Llama 3</option>
-                            </select>
-                        </div>
-
-                        {/* Slide checks */}
-                        <div className="space-y-4 pt-4 border-t border-border">
-                            {/* Auto parse toggle */}
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-0.5">
-                                    <h4 className="text-xs font-semibold text-foreground">Auto Scan Files</h4>
-                                    <p className="text-[10px] text-muted-foreground">Automatically trigger full parsing diagnostic chains after drag uploads.</p>
-                                </div>
-                                <input
-                                    type="checkbox"
-                                    checked={settings.autoAnalyze}
-                                    onChange={(e) => handleUpdateSettings({ autoAnalyze: e.target.checked })}
-                                    className="size-4 rounded bg-secondary border border-border accent-primary cursor-pointer"
-                                />
-                            </div>
-
-                            {/* Email updates */}
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-0.5">
-                                    <h4 className="text-xs font-semibold text-foreground">Email System Alerts</h4>
-                                    <p className="text-[10px] text-muted-foreground">Send email updates when compliance profiles improve.</p>
-                                </div>
-                                <input
-                                    type="checkbox"
-                                    checked={settings.emailAlerts}
-                                    onChange={(e) => handleUpdateSettings({ emailAlerts: e.target.checked })}
-                                    className="size-4 rounded bg-secondary border border-border accent-primary cursor-pointer"
-                                />
-                            </div>
-                        </div>
                     </div>
 
                     {/* Account management */}
