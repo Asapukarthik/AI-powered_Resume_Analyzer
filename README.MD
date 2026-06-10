@@ -1,4 +1,4 @@
-<![CDATA[# 🤖 AI-Powered Resume Analyzer
+# 🤖 AI-Powered Resume Analyzer
 
 An intelligent, full-stack ATS (Applicant Tracking System) resume analyzer that leverages **Google Gemini 2.5 Flash** to give job seekers deep, actionable insights into how their resume stacks up against a target job description.
 
