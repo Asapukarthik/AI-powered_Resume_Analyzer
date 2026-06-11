@@ -235,7 +235,6 @@ export default function LoginPage() {
                             shape="rectangular"
                             size="large"
                             text="signin_with"
-                            width="100%"
                         />
                     </div>
 

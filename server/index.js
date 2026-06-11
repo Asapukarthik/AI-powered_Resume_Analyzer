@@ -38,20 +38,7 @@ export const prisma = new PrismaClient();
 
 // Middleware
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigin = process.env.CLIENT_URL || 'http://localhost:3000';
-    // Remove trailing slash if present for comparison
-    const normalizedAllowed = allowedOrigin.endsWith('/') ? allowedOrigin.slice(0, -1) : allowedOrigin;
-    const normalizedOrigin = origin.endsWith('/') ? origin.slice(0, -1) : origin;
-    
-    if (normalizedOrigin === normalizedAllowed || normalizedOrigin === 'http://localhost:3000') {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true,
   credentials: true
 }));
 app.use(express.json());
