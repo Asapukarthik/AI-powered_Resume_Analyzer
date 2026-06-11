@@ -130,9 +130,9 @@ Rules:
    - 2 overused words
 3. Generate exactly 3 roadmap steps.
 4. Generate at least:
-   - 20 technical questions
-   - 10 HR question
-   - 10 project question
+   - 5 technical questions
+   - 5 HR question
+   - 5 project question
 5. Recommendations must be actionable.
 6. Return ONLY JSON.
 `;
@@ -153,7 +153,17 @@ Rules:
         .replace(/```/g, "")
         .trim();
 
-      const parsedData = JSON.parse(cleanedResponse);
+      let parsedData;
+
+      try {
+        parsedData = JSON.parse(
+          cleanedResponse
+        );
+      } catch (error) {
+        throw new Error(
+          "Gemini returned invalid JSON"
+        );
+      }
 
       const validatedData = ResumeAnalysisSchema.parse(parsedData);
 

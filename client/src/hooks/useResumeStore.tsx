@@ -121,14 +121,14 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
             try {
                 const token = localStorage.getItem("token");
                 if (!token) return;
-                
-                const res = await fetch("http://localhost:3001/api/resumes", {
+
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resumes`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
-                
+
                 if (res.ok) {
                     const data = await res.json();
-                    
+
                     // Map backend data to frontend ResumeData interface
                     const mappedResumes: ResumeData[] = data.map((r: BackendResume) => ({
                         id: r.id,
@@ -147,7 +147,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
                         suggestedRoadmap: r.suggestedRoadmap || [],
                         interviewQuestions: r.interviewQuestions || []
                     }));
-                    
+
                     setResumes(mappedResumes);
                     if (mappedResumes.length > 0) {
                         setActiveResume(mappedResumes[0]);
@@ -164,7 +164,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
     const uploadResume = async (file: File, jobDescription: string): Promise<ResumeData> => {
         setIsUploading(true);
         setUploadProgress(10);
-        
+
         // Simulate progressive upload visually
         const interval = setInterval(() => {
             setUploadProgress(prev => {
@@ -179,16 +179,16 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
         try {
             const formData = new FormData();
             formData.append("resume", file);
-            
+
             // Use mock job description if not provided
-            const finalJobDescription = jobDescription.trim() || 
+            const finalJobDescription = jobDescription.trim() ||
                 "Software Engineer with experience in React, Node.js, and Cloud Infrastructure. Must be able to work in agile teams and deliver scalable web applications.";
-            
+
             formData.append("jobDescription", finalJobDescription);
 
             const token = localStorage.getItem("token");
 
-            const res = await fetch("http://localhost:3001/api/resumes/analyze", {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resumes/analyze`, {
                 method: "POST",
                 headers: {
                     ...(token ? { "Authorization": `Bearer ${token}` } : {})
@@ -206,7 +206,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
             }
 
             const resumeRecord = data.resume;
-            
+
             const newResume: ResumeData = {
                 id: resumeRecord.id,
                 name: resumeRecord.name,
@@ -230,7 +230,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
             setIsUploading(false);
             setUploadProgress(0);
             return newResume;
-            
+
         } catch (error) {
             clearInterval(interval);
             setIsUploading(false);
@@ -271,7 +271,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
         await new Promise(resolve => setTimeout(resolve, 600));
         setUploadProgress(60);
         await new Promise(resolve => setTimeout(resolve, 400));
-        
+
         setResumes(prev =>
             prev.map(r => {
                 if (r.id === id) {

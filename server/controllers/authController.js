@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../index.js';
+import { RegisterSchema, LoginSchema, GoogleLoginSchema } from '../validators/authValidator.js';
 
 import { OAuth2Client } from 'google-auth-library';
 
@@ -15,24 +16,30 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const googleLogin = async (req, res, next) => {
     try {
-        const { token } = req.body;
-        if (!token) {
+        const result = GoogleLoginSchema.safeParse(req.body);
+        if (!result.success) {
             res.status(400);
-            throw new Error('Google token is required');
+            throw new Error(result.error.errors[0].message);
         }
+        
+        const { token } = result.data;
 
         // The frontend now sends an access_token via useGoogleLogin.
         // We fetch the user profile from Google's userinfo endpoint.
-        const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${token}` }
+
+
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch user profile from Google');
-        }
+        const payload = ticket.getPayload();
 
-        const payload = await response.json();
-        const { email, name, sub: googleId } = payload;
+        const {
+            email,
+            name,
+            sub: googleId,
+        } = payload;
 
         if (!email) {
             res.status(400);
@@ -71,12 +78,14 @@ export const googleLogin = async (req, res, next) => {
 
 export const registerUser = async (req, res, next) => {
     try {
-        const { name, email, password } = req.body;
+        const validation = RegisterSchema.safeParse(req.body);
 
-        if (!name || !email || !password) {
+        if (!validation.success) {
             res.status(400);
-            throw new Error('Please provide all fields');
+            throw new Error(validation.error.errors[0].message);
         }
+
+        const { name, email, password } = validation.data;
 
         const userExists = await prisma.user.findUnique({ where: { email } });
 
@@ -113,7 +122,14 @@ export const registerUser = async (req, res, next) => {
 
 export const loginUser = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const validation = LoginSchema.safeParse(req.body);
+
+        if (!validation.success) {
+            res.status(400);
+            throw new Error(validation.error.errors[0].message);
+        }
+
+        const { email, password } = validation.data;
 
         const user = await prisma.user.findUnique({
             where: { email },

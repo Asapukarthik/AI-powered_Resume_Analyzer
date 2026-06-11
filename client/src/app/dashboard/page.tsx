@@ -15,6 +15,7 @@ import JobMatcherView from "@/components/dashboard/JobMatcherView";
 import InterviewView from "@/components/dashboard/InterviewView";
 import SkillsGapView from "@/components/dashboard/SkillsGapView";
 import SettingsView from "@/components/dashboard/SettingsView";
+import AIChatbot from "@/components/dashboard/AIChatbot";
 import { AnimatePresence, motion } from "framer-motion";
 
 import {
@@ -104,7 +105,7 @@ export default function DashboardPage() {
 
 
         verifyAuth();
-    }, [router, updateUser, updateSettings]);
+    }, [router, updateUser, updateSettings, API_URL]);
 
 
 
@@ -468,6 +469,9 @@ export default function DashboardPage() {
                     </div>
                 </div>
             )}
+
+            {/* Global AI Chatbot */}
+            <AIChatbot />
         </main>
     );
 }

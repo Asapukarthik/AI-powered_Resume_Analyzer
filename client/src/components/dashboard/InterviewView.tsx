@@ -42,31 +42,42 @@ export default function InterviewView() {
 
     const handleGenerate = async () => {
         setIsGenerating(true);
-        // Simulated latency
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        
-        // Push questions
-        const newMockQ = {
-            id: `q-gen-${Date.now()}`,
-            category: activeCategory === "all" ? "technical" : activeCategory,
-            question: activeCategory === "hr" 
-                ? "Describe a major system failure you were responsible for. How did you diagnose it under pressure?"
-                : activeCategory === "project"
-                ? "In your Kubernetes implementation, how did you coordinate secret rotations without causing deployment restarts?"
-                : "How do you architect distributed locks in high-traffic microservices to guarantee zero double-spends?",
-            answer: activeCategory === "hr"
-                ? "Focus on taking ownership immediately without shifting blame. Walk through your systematic observability triage (e.g. checking logs, scaling instances), how you implemented a reliable temporary hotfix, and what root-cause changes you committed to make sure it never happens again."
-                : activeCategory === "project"
-                ? "I decoupled resource injection from the pod restart cycle by utilizing Kubernetes secrets mapped as dynamic files within volumes, combined with internal config reloaders inside the applications to watch for file-change triggers without restarting pods."
-                : "I leverage Redis (Redlock algorithm) or database-level optimistic concurrency controls. For strict financial states, a transactional outbox pattern combined with database constraints ensures idempotent transaction execution."
-        };
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/interviews/generate`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    category: activeCategory === "all" ? "technical" : activeCategory,
+                    resumeId: activeResume.id
+                })
+            });
 
-        setActiveResume({
-            ...activeResume,
-            interviewQuestions: [newMockQ, ...activeResume.interviewQuestions]
-        });
-        setOpenQuestionId(newMockQ.id);
-        setIsGenerating(false);
+            if (!res.ok) {
+                throw new Error("Failed to generate questions");
+            }
+
+            const data = await res.json();
+            
+            // Push questions
+            const newQuestions = data.questions || [];
+
+            setActiveResume({
+                ...activeResume,
+                interviewQuestions: [...newQuestions, ...activeResume.interviewQuestions]
+            });
+            if (newQuestions.length > 0) {
+                setOpenQuestionId(newQuestions[0].id);
+            }
+        } catch (error) {
+            console.error("Error generating questions:", error);
+            // Optionally add a toast notification here
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     // Filter lists

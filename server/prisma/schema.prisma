@@ -16,6 +16,8 @@ model User {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
+  interviewSessions InterviewSession[]
+
   settings     UserSettings?
   resumes      Resume[]
   jobMatches   JobMatch[]
@@ -69,4 +71,33 @@ model JobMatch {
 
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   resume          Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model InterviewSession {
+  id          String @id @default(cuid())
+
+  userId      String
+
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  score       Int?
+
+  createdAt   DateTime @default(now())
+
+  responses   InterviewResponse[]
+}
+model InterviewResponse {
+  id          String @id @default(cuid())
+
+  question    String
+
+  answer      String
+
+  feedback    String
+
+  score       Int
+
+  sessionId   String
+
+  session     InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }

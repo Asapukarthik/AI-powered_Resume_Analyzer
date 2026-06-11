@@ -117,13 +117,19 @@ export const deleteResume = async (req, res) => {
     // Prisma handles cascading deletes for JobMatch if configured,
     // otherwise we just delete the resume (and job matches will be orphaned or cascade deleted).
     // Let's explicitly delete associated job matches just in case.
-    await prisma.jobMatch.deleteMany({
-      where: { resumeId: id }
-    });
+    await prisma.$transaction([
+      prisma.jobMatch.deleteMany({
+        where: {
+          resumeId: id
+        }
+      }),
 
-    await prisma.resume.delete({
-      where: { id }
-    });
+      prisma.resume.delete({
+        where: {
+          id
+        }
+      })
+    ]);
 
     res.json({ message: 'Resume deleted successfully' });
   } catch (error) {
