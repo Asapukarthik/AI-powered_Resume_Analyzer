@@ -17,7 +17,13 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginOpenerPolicy: {
+      policy: "same-origin-allow-popups",
+    },
+  })
+);
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
