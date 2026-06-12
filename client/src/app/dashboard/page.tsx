@@ -61,9 +61,10 @@ export default function DashboardPage() {
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [authLoading, setAuthLoading] = useState(true);
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
     useEffect(() => {
+        let mounted = true;
         const verifyAuth = async () => {
             const token = localStorage.getItem("token");
             if (!token) {
@@ -72,7 +73,7 @@ export default function DashboardPage() {
             }
 
             try {
-                const res = await fetch(`${API_URL}/api/auth/me`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
                     headers: {
                         "Authorization": `Bearer ${token}`
                     }
@@ -83,6 +84,7 @@ export default function DashboardPage() {
                 }
 
                 const data = await res.json();
+                if (!mounted) return;
                 updateUser(data.name, data.email);
 
                 if (data.settings) {
@@ -105,7 +107,10 @@ export default function DashboardPage() {
 
 
         verifyAuth();
-    }, [router, updateUser, updateSettings, API_URL]);
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
 
 

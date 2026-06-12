@@ -25,8 +25,14 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     // Note: We use process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID. Ensure this is set in your .env.local
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
-    
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
+    if (!clientId) {
+        throw new Error(
+            "NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing"
+        );
+    }
+
     return (
         <html
             lang="en"

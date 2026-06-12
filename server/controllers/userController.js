@@ -1,4 +1,4 @@
-import { prisma } from '../index.js';
+import { prisma } from '../config/prisma.js';
 import bcrypt from 'bcrypt';
 
 export const updateProfile = async (req, res, next) => {
@@ -36,7 +36,7 @@ export const updateProfile = async (req, res, next) => {
 export const updateSettings = async (req, res, next) => {
     try {
         const { emailAlerts, autoAnalyze, model } = req.body;
-        
+
         const updatedSettings = await prisma.userSettings.upsert({
             where: { userId: req.user.id },
             update: {

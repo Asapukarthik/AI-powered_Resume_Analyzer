@@ -3,8 +3,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
@@ -13,6 +11,9 @@ import interviewRoutes from './routes/interviewRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 
 dotenv.config();
+import { validateEnv } from "./config/env.js";
+
+validateEnv();
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -26,21 +27,24 @@ app.use(
 );
 
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: "Too many requests. Try again later."
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: "Too many requests. Try again later."
 });
 
-app.use(limiter);
+// app.use(limiter);
 
-// Initialize Prisma
-export const prisma = new PrismaClient();
 
 // Middleware
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
+
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  })
+);
+
+
 app.use(express.json());
 
 // Routes
@@ -51,7 +55,7 @@ app.use('/api/interviews', interviewRoutes);
 app.use('/api/chat', chatRoutes);
 
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', message: 'AI Resume Analyzer API is running' });
+  res.json({ status: 'ok', message: 'AI Resume Analyzer API is running' });
 });
 
 // Error Handler Middleware
@@ -59,5 +63,17 @@ app.use(notFound);
 app.use(errorHandler);
 
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on port ${port}`);
+});
+
+import { prisma } from "./config/prisma.js";
+
+process.on("SIGINT", async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on("SIGTERM", async () => {
+  await prisma.$disconnect();
+  process.exit(0);
 });

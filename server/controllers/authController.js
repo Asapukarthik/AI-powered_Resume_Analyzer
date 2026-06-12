@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../index.js';
+import { prisma } from '../config/prisma.js';
 import { RegisterSchema, LoginSchema, GoogleLoginSchema } from '../validators/authValidator.js';
 
 import { OAuth2Client } from 'google-auth-library';
@@ -21,7 +21,7 @@ export const googleLogin = async (req, res, next) => {
             res.status(400);
             throw new Error(result.error.errors[0].message);
         }
-        
+
         const { token } = result.data;
 
         // The frontend now sends an access_token via useGoogleLogin.

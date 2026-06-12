@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from "react";
 
 // Structure definitions
 export interface Keyword {
@@ -116,48 +116,48 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
         model: "gpt-4o"
     });
 
-    useEffect(() => {
-        const fetchResumes = async () => {
-            try {
-                const token = localStorage.getItem("token");
-                if (!token) return;
 
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resumes`, {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
+    const fetchResumes = async () => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
 
-                if (res.ok) {
-                    const data = await res.json();
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resumes`, {
+                headers: { "Authorization": `Bearer ${token}` }
+            });
 
-                    // Map backend data to frontend ResumeData interface
-                    const mappedResumes: ResumeData[] = data.map((r: BackendResume) => ({
-                        id: r.id,
-                        name: r.name,
-                        date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-                        size: r.size ? `${(r.size / (1024 * 1024)).toFixed(1)} MB` : "Unknown",
-                        score: r.score || 0,
-                        skillsMatch: r.skillsMatch || 0,
-                        matchedKeywords: r.matchedKeywordsCount || 0,
-                        missingKeywords: r.missingKeywordsCount || 0,
-                        summary: r.summary || "",
-                        strengths: r.strengths || [],
-                        weaknesses: r.weaknesses || [],
-                        keywords: r.keywords || [],
-                        recommendedSkills: r.recommendedSkills || [],
-                        suggestedRoadmap: r.suggestedRoadmap || [],
-                        interviewQuestions: r.interviewQuestions || []
-                    }));
+            if (res.ok) {
+                const data = await res.json();
 
-                    setResumes(mappedResumes);
-                    if (mappedResumes.length > 0) {
-                        setActiveResume(mappedResumes[0]);
-                    }
+                // Map backend data to frontend ResumeData interface
+                const mappedResumes: ResumeData[] = data.map((r: BackendResume) => ({
+                    id: r.id,
+                    name: r.name,
+                    date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                    size: r.size ? `${(r.size / (1024 * 1024)).toFixed(1)} MB` : "Unknown",
+                    score: r.score || 0,
+                    skillsMatch: r.skillsMatch || 0,
+                    matchedKeywords: r.matchedKeywordsCount || 0,
+                    missingKeywords: r.missingKeywordsCount || 0,
+                    summary: r.summary || "",
+                    strengths: r.strengths || [],
+                    weaknesses: r.weaknesses || [],
+                    keywords: r.keywords || [],
+                    recommendedSkills: r.recommendedSkills || [],
+                    suggestedRoadmap: r.suggestedRoadmap || [],
+                    interviewQuestions: r.interviewQuestions || []
+                }));
+
+                setResumes(mappedResumes);
+                if (mappedResumes.length > 0) {
+                    setActiveResume(mappedResumes[0]);
                 }
-            } catch (error) {
-                console.error("Failed to fetch resumes", error);
             }
-        };
-
+        } catch (error) {
+            console.error("Failed to fetch resumes", error);
+        }
+    };
+    useEffect(() => {
         fetchResumes();
     }, []);
 
@@ -244,7 +244,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const res = await fetch(`http://localhost:3001/api/resumes/${id}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resumes/${id}`, {
                 method: "DELETE",
                 headers: { "Authorization": `Bearer ${token}` }
             });
@@ -295,40 +295,52 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
         setUploadProgress(0);
     };
 
-    const updateUser = (name: string, email: string) => {
+    const updateUser = useCallback((name: string, email: string) => {
         setUser(prev => ({
             ...prev,
             name,
             email
         }));
-    };
+    }, []);
 
-    const updateSettings = (updated: Partial<AppSettings>) => {
+    const updateSettings = useCallback((updated: Partial<AppSettings>) => {
         setSettings(prev => ({
             ...prev,
             ...updated
         }));
-    };
+    }, []);
 
+    const value = useMemo(
+        () => ({
+            currentTab,
+            setCurrentTab,
+            resumes,
+            activeResume,
+            setActiveResume,
+            isUploading,
+            uploadProgress,
+            uploadResume,
+            deleteResume,
+            reanalyzeResume,
+            user,
+            updateUser,
+            settings,
+            updateSettings
+        }),
+        [
+            currentTab,
+            resumes,
+            activeResume,
+            isUploading,
+            uploadProgress,
+            user,
+            settings,
+            updateUser,
+            updateSettings
+        ]
+    );
     return (
-        <ResumeContext.Provider
-            value={{
-                currentTab,
-                setCurrentTab,
-                resumes,
-                activeResume,
-                setActiveResume,
-                isUploading,
-                uploadProgress,
-                uploadResume,
-                deleteResume,
-                reanalyzeResume,
-                user,
-                updateUser,
-                settings,
-                updateSettings
-            }}
-        >
+        <ResumeContext.Provider value={value}>
             {children}
         </ResumeContext.Provider>
     );

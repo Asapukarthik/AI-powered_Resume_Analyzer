@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { prisma } from '../index.js';
+import { prisma } from '../config/prisma.js';
 
 export const chatWithAI = async (req, res, next) => {
     try {

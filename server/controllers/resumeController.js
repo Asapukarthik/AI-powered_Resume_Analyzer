@@ -1,4 +1,4 @@
-import { prisma } from '../index.js';
+import { prisma } from '../config/prisma.js';
 import { extractTextFromFile } from '../services/fileParser.js';
 import { analyzeResume } from '../services/aiService.js';
 import { uploadToCloudinary } from '../utils/cloudinary.js';
@@ -76,6 +76,7 @@ export const uploadAndAnalyzeResume = async (req, res) => {
         suggestions: analysis.atsAnalysis?.recommendations || [],
       },
     });
+    console.log(text);
 
     return res.status(201).json({
       message: 'Resume analyzed successfully',

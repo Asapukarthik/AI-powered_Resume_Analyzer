@@ -7,7 +7,7 @@ import BackgroundParticles from "@/components/layout/BackgroundParticles";
 import VercelBackground from "@/components/layout/VercelBackground";
 import { Layers, Mail, Eye, EyeOff, Lock, User, Loader2, ArrowLeft, ShieldCheck } from "lucide-react";
 
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -19,7 +19,7 @@ export default function RegisterPage() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [terms, setTerms] = useState(false);
     const [registerLoading, setRegisterLoading] = useState(false);
-    const [googleLoading, setGoogleLoading] = useState(false);
+
     const [error, setError] = useState("");
     const [success, setSuccess] = useState(false);
 
@@ -97,8 +97,7 @@ export default function RegisterPage() {
         }
     };
 
-    const handleGoogleSuccess = async (credentialResponse: any) => {
-        setGoogleLoading(true);
+    const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
         setError("");
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`, {
@@ -114,8 +113,6 @@ export default function RegisterPage() {
             router.replace("/dashboard");
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Google auth failed.");
-        } finally {
-            setGoogleLoading(false);
         }
     };
 
