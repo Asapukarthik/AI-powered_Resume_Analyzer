@@ -1,10 +1,11 @@
 import "./globals.css";
-import { Outfit, Roboto_Mono } from "next/font/google";
+import { Inter, Roboto_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ResumeProvider } from "@/hooks/useResumeStore";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { ThemeProvider } from "@/components/ui/ThemeProvider";
 
-const outfit = Outfit({
+const inter = Inter({
     subsets: ["latin"],
     variable: "--font-sans",
 });
@@ -36,12 +37,15 @@ export default function RootLayout({
     return (
         <html
             lang="en"
-            className={cn("dark font-sans", outfit.variable, robotoMono.variable)}
-            style={{ colorScheme: "dark" }}
+            className={cn("font-sans", inter.variable, robotoMono.variable)}
+            suppressHydrationWarning
+            data-scroll-behavior="smooth"
         >
             <body className="bg-background text-foreground antialiased selection:bg-primary/25 selection:text-foreground min-h-screen">
                 <GoogleOAuthProvider clientId={clientId}>
-                    <ResumeProvider>{children}</ResumeProvider>
+                    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+                        <ResumeProvider>{children}</ResumeProvider>
+                    </ThemeProvider>
                 </GoogleOAuthProvider>
             </body>
         </html>

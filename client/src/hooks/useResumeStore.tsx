@@ -24,6 +24,11 @@ export interface RoadmapStep {
     skills: string[];
 }
 
+export interface SkillCategory {
+    category: string;
+    score: number;
+}
+
 export interface ResumeData {
     id: string;
     name: string;
@@ -37,6 +42,7 @@ export interface ResumeData {
     strengths: string[];
     weaknesses: string[];
     keywords: Keyword[];
+    skillCategories: SkillCategory[];
     recommendedSkills: string[];
     suggestedRoadmap: RoadmapStep[];
     interviewQuestions: Question[];
@@ -91,6 +97,7 @@ interface BackendResume {
     strengths?: string[];
     weaknesses?: string[];
     keywords?: Keyword[];
+    skillCategories?: SkillCategory[];
     recommendedSkills?: string[];
     suggestedRoadmap?: RoadmapStep[];
     interviewQuestions?: Question[];
@@ -117,47 +124,49 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
     });
 
 
-    const fetchResumes = async () => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
-
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resumes`, {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-
-                // Map backend data to frontend ResumeData interface
-                const mappedResumes: ResumeData[] = data.map((r: BackendResume) => ({
-                    id: r.id,
-                    name: r.name,
-                    date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-                    size: r.size ? `${(r.size / (1024 * 1024)).toFixed(1)} MB` : "Unknown",
-                    score: r.score || 0,
-                    skillsMatch: r.skillsMatch || 0,
-                    matchedKeywords: r.matchedKeywordsCount || 0,
-                    missingKeywords: r.missingKeywordsCount || 0,
-                    summary: r.summary || "",
-                    strengths: r.strengths || [],
-                    weaknesses: r.weaknesses || [],
-                    keywords: r.keywords || [],
-                    recommendedSkills: r.recommendedSkills || [],
-                    suggestedRoadmap: r.suggestedRoadmap || [],
-                    interviewQuestions: r.interviewQuestions || []
-                }));
-
-                setResumes(mappedResumes);
-                if (mappedResumes.length > 0) {
-                    setActiveResume(mappedResumes[0]);
-                }
-            }
-        } catch (error) {
-            console.error("Failed to fetch resumes", error);
-        }
-    };
     useEffect(() => {
+        const fetchResumes = async () => {
+            try {
+                const token = localStorage.getItem("token");
+                if (!token) return;
+
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resumes`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+
+                    // Map backend data to frontend ResumeData interface
+                    const mappedResumes: ResumeData[] = data.map((r: BackendResume) => ({
+                        id: r.id,
+                        name: r.name,
+                        date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+                        size: r.size ? `${(r.size / (1024 * 1024)).toFixed(1)} MB` : "Unknown",
+                        score: r.score || 0,
+                        skillsMatch: r.skillsMatch || 0,
+                        matchedKeywords: r.matchedKeywordsCount || 0,
+                        missingKeywords: r.missingKeywordsCount || 0,
+                        summary: r.summary || "",
+                        strengths: r.strengths || [],
+                        weaknesses: r.weaknesses || [],
+                        keywords: r.keywords || [],
+                        skillCategories: r.skillCategories || [],
+                        recommendedSkills: r.recommendedSkills || [],
+                        suggestedRoadmap: r.suggestedRoadmap || [],
+                        interviewQuestions: r.interviewQuestions || []
+                    }));
+
+                    setResumes(mappedResumes);
+                    if (mappedResumes.length > 0) {
+                        setActiveResume(mappedResumes[0]);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to fetch resumes", error);
+            }
+        };
+
         fetchResumes();
     }, []);
 
@@ -220,6 +229,7 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
                 strengths: (resumeRecord.strengths as string[]) || [],
                 weaknesses: (resumeRecord.weaknesses as string[]) || [],
                 keywords: (resumeRecord.keywords as Keyword[]) || [],
+                skillCategories: (resumeRecord.skillCategories as SkillCategory[]) || [],
                 recommendedSkills: (resumeRecord.recommendedSkills as string[]) || [],
                 suggestedRoadmap: (resumeRecord.suggestedRoadmap as RoadmapStep[]) || [],
                 interviewQuestions: (resumeRecord.interviewQuestions as Question[]) || [],
@@ -336,7 +346,10 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
             user,
             settings,
             updateUser,
-            updateSettings
+            updateSettings,
+            deleteResume,
+            reanalyzeResume,
+            uploadResume
         ]
     );
     return (

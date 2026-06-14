@@ -45,6 +45,10 @@ export const ResumeAnalysisSchema = z.object({
     missingSkills: z.array(z.string()),
     recommendedSkills: z.array(z.string())
   }),
+  skillCategories: z.array(z.object({
+    category: z.string(),
+    score: z.number()
+  })),
   learningRoadmap: z.array(z.object({
     step: z.number(),
     title: z.string(),

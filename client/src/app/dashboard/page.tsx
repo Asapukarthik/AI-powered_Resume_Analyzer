@@ -16,6 +16,7 @@ import InterviewView from "@/components/dashboard/InterviewView";
 import SkillsGapView from "@/components/dashboard/SkillsGapView";
 import SettingsView from "@/components/dashboard/SettingsView";
 import AIChatbot from "@/components/dashboard/AIChatbot";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { AnimatePresence, motion } from "framer-motion";
 
 import {
@@ -38,7 +39,8 @@ import {
     ChevronRight,
     Plus,
     FileText,
-    CheckCircle2
+    CheckCircle2,
+    Search
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -218,14 +220,14 @@ export default function DashboardPage() {
 
                 {/* Branding Header */}
                 <div className={`flex h-16 items-center px-6 border-b border-border transition-all overflow-hidden ${isSidebarCollapsed ? "justify-center px-0" : "gap-2"}`}>
-                    <Layers className="size-5 text-primary shrink-0" />
+                    <Layers className="size-5 text-indigo-600 shrink-0" />
                     {!isSidebarCollapsed && (
-                        <span className="text-sm font-bold tracking-tight text-foreground whitespace-nowrap">Resume<span className="text-primary">.ai</span></span>
+                        <span className="text-sm font-bold tracking-tight text-foreground whitespace-nowrap">Resume<span className="text-indigo-600">.ai</span></span>
                     )}
                 </div>
 
                 {/* Main Link Options */}
-                <nav className="flex-1 space-y-3 px-3 py-6 overflow-hidden">
+                <nav className="flex-1 space-y-2 px-2 py-6 overflow-hidden">
                     {NAV_ITEMS.map((item) => {
                         const isActive = currentTab === item.value;
                         return (
@@ -233,10 +235,10 @@ export default function DashboardPage() {
                                 key={item.value}
                                 title={isSidebarCollapsed ? item.label : undefined}
                                 onClick={() => setCurrentTab(item.value)}
-                                className={`w-full flex items-center py-2.5 rounded-lg text-sm font-medium transition-all relative cursor-pointer ${isActive
-                                    ? "bg-primary/10 text-primary shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                                    } ${isSidebarCollapsed ? "justify-center px-0" : "gap-3 px-4"}`}
+                                className={`w-full flex items-center py-2.5 text-xs font-semibold transition-all relative cursor-pointer ${isActive
+                                    ? "bg-indigo-50/70 text-indigo-600 dark:bg-indigo-950/20 dark:text-indigo-400 border-l-2 border-indigo-600 dark:border-indigo-400"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/40 border-l-2 border-transparent"
+                                    } ${isSidebarCollapsed ? "justify-center px-0" : "gap-3 px-4 rounded-r-lg"}`}
                             >
                                 {item.icon}
                                 {!isSidebarCollapsed && <span className="whitespace-nowrap">{item.label}</span>}
@@ -244,6 +246,68 @@ export default function DashboardPage() {
                         );
                     })}
                 </nav>
+
+                {/* Upgrade to Pro Card */}
+                {!isSidebarCollapsed && (
+                    <div className="p-4 mx-3 mb-4 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-pink-500/10 border border-indigo-500/15 relative overflow-hidden group">
+                        <div className="absolute -right-6 -top-6 w-16 h-16 bg-indigo-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
+                        <div className="relative z-10">
+                            <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                                <Sparkles className="size-3.5 text-indigo-500 animate-pulse" />
+                                Upgrade to Pro
+                            </h4>
+                            <p className="text-[10px] text-muted-foreground mt-1 leading-normal">
+                                Get unlimited resume scans, advanced job matching, and AI suggestions.
+                            </p>
+                            <button className="w-full mt-3 h-7 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold transition-all shadow-lg shadow-indigo-600/15 cursor-pointer">
+                                Upgrade Now
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Sidebar User Profile at bottom */}
+                <div className="border-t border-border/60 p-3 relative">
+                    {/* User Dropdown Popover */}
+                    {userMenuOpen && (
+                        <div className={`absolute bottom-full mb-2 ${isSidebarCollapsed ? "left-2 w-48" : "left-3 right-3"} rounded-xl border border-border bg-card p-1.5 shadow-2xl z-40 text-left`}>
+                            <div className="px-2.5 py-2 border-b border-border/60 mb-1">
+                                <h4 className="text-xs font-semibold text-foreground truncate">{user.name}</h4>
+                                <span className="text-[10px] text-muted-foreground truncate block mt-0.5">{user.email}</span>
+                            </div>
+                            <button
+                                onClick={() => { setUserMenuOpen(false); setCurrentTab("settings"); }}
+                                className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary/60 hover:text-foreground transition-colors cursor-pointer"
+                            >
+                                <Settings className="size-3.5" /> Settings
+                            </button>
+                            <button
+                                onClick={handleSignOut}
+                                className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors mt-1 cursor-pointer"
+                            >
+                                <LogOut className="size-3.5" /> Disconnect Session
+                            </button>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={() => { setUserMenuOpen(!userMenuOpen); setNotificationsOpen(false); }}
+                        className={`w-full flex items-center hover:bg-secondary/50 rounded-xl transition-all duration-200 cursor-pointer ${isSidebarCollapsed ? "justify-center p-1.5" : "p-2 gap-3"}`}
+                    >
+                        <div className="h-8 w-8 rounded-full bg-indigo-600/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 shadow-inner">
+                            {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                        </div>
+                        {!isSidebarCollapsed && (
+                            <div className="flex-1 min-w-0 text-left">
+                                <h4 className="text-[11px] font-semibold text-foreground truncate">{user.name}</h4>
+                                <span className="text-[9px] text-muted-foreground truncate block mt-0.5">{user.email}</span>
+                            </div>
+                        )}
+                        {!isSidebarCollapsed && (
+                            <ChevronDown className={`size-3 text-muted-foreground transition-transform duration-200 ${userMenuOpen ? "rotate-180" : ""}`} />
+                        )}
+                    </button>
+                </div>
             </aside>
 
             {/* --- RIGHT CONTENT PANEL --- */}
@@ -259,14 +323,21 @@ export default function DashboardPage() {
                             <Menu className="size-4" />
                         </button>
                         <div className="flex items-center gap-1.5">
-                            <Layers className="size-4 text-primary" />
-                            <span className="text-xs font-semibold tracking-tight text-foreground">Resume<span className="text-primary">.ai</span></span>
+                            <Layers className="size-4 text-indigo-600" />
+                            <span className="text-xs font-semibold tracking-tight text-foreground">Resume<span className="text-indigo-600">.ai</span></span>
                         </div>
                     </div>
 
-                    {/* Breadcrumbs (Desktop only) */}
-                    <div className="hidden lg:flex items-center gap-3 text-xs text-muted-foreground font-mono">
-                        <span className="text-foreground/80 font-semibold">{getTabTitle()}</span>
+                    {/* Search Bar / Input (Desktop only) */}
+                    <div className="hidden lg:flex items-center gap-3 flex-1 max-w-md">
+                        <div className="relative w-full">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground/60" />
+                            <input
+                                type="text"
+                                placeholder="Search anything..."
+                                className="w-full h-9 pl-9 pr-4 rounded-xl border border-border bg-background/30 focus:bg-background/60 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 text-xs transition-all placeholder:text-muted-foreground/60 outline-none"
+                            />
+                        </div>
                     </div>
 
                     {/* Quick Access Tools */}
@@ -313,20 +384,20 @@ export default function DashboardPage() {
                         {/* Scan Quick CTA */}
                         <button
                             onClick={() => setCurrentTab("upload")}
-                            className="hidden sm:flex h-8 gap-1 rounded-lg btn-primary px-3 text-[10px] transition-all items-center cursor-pointer"
+                            className="hidden sm:flex h-9 gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-4 text-xs font-semibold shadow-lg shadow-indigo-600/10 transition-all items-center cursor-pointer border-none"
                         >
-                            <Plus className="size-3.5" />
-                            New Scan
+                            <Upload className="size-3.5" />
+                            Upload New Resume
                         </button>
 
                         {/* Notifications Menu */}
                         <div className="relative">
                             <button
                                 onClick={() => { setNotificationsOpen(!notificationsOpen); setUserMenuOpen(false); }}
-                                className="h-8 w-8 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground flex items-center justify-center relative cursor-pointer"
+                                className="h-9 w-9 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground flex items-center justify-center relative cursor-pointer hover:bg-secondary/40 transition-colors"
                             >
                                 <Bell className="size-4" />
-                                <span className="absolute top-1 right-1 size-1.5 rounded-full bg-neutral-400" />
+                                <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-rose-500 border border-card ring-1 ring-rose-500/20" />
                             </button>
 
                             {notificationsOpen && (
@@ -351,35 +422,8 @@ export default function DashboardPage() {
                             )}
                         </div>
 
-                        {/* Top Header User Profile */}
-                        <div className="relative ml-2">
-                            <button
-                                onClick={() => { setUserMenuOpen(!userMenuOpen); setNotificationsOpen(false); }}
-                                className="h-8 w-8 rounded-full bg-secondary border border-border flex items-center justify-center font-mono font-bold text-xs text-foreground cursor-pointer hover:border-primary/50 transition-colors"
-                            >
-                                {user?.name?.charAt(0)?.toUpperCase() || "U"}
-                            </button>
-
-                            {userMenuOpen && (
-                                <div className="absolute right-0 mt-2 w-56 rounded-xl border border-border bg-card p-2 shadow-2xl z-40 text-left">
-                                    <div className="px-3 py-2 border-b border-border mb-1">
-                                        <h4 className="text-xs font-semibold text-foreground truncate">{user.name}</h4>
-                                        <span className="text-[10px] text-muted-foreground truncate block mt-0.5">{user.email}</span>
-                                    </div>
-                                    <button
-                                        onClick={() => { setUserMenuOpen(false); setCurrentTab("settings"); }}
-                                        className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-secondary/60 hover:text-foreground transition-colors cursor-pointer"
-                                    >
-                                        <Settings className="size-3.5" /> Settings
-                                    </button>
-                                    <button
-                                        onClick={handleSignOut}
-                                        className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors mt-1 cursor-pointer"
-                                    >
-                                        <LogOut className="size-3.5" /> Disconnect Session
-                                    </button>
-                                </div>
-                            )}
+                        <div className="hidden sm:block ml-2">
+                            <ThemeToggle />
                         </div>
                     </div>
                 </header>

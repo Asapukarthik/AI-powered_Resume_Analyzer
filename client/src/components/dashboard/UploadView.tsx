@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { useResumeStore } from "@/hooks/useResumeStore";
+import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
 import { 
     Upload, 
     FileText, 
@@ -11,6 +13,39 @@ import {
     Loader2, 
     ArrowRight
 } from "lucide-react";
+
+const AI_STEPS = [
+    "Analyzing Resume...",
+    "Checking ATS Alignment...",
+    "Matching Core Skills...",
+    "Generating Strategic Suggestions..."
+];
+
+const TypewriterEffect = ({ stepIndex }: { stepIndex: number }) => {
+    const text = AI_STEPS[stepIndex] || AI_STEPS[0];
+    const [displayed, setDisplayed] = useState("");
+
+    useEffect(() => {
+        setDisplayed("");
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i < text.length) {
+                setDisplayed(text.substring(0, i + 1));
+                i++;
+            } else {
+                clearInterval(interval);
+            }
+        }, 40);
+        return () => clearInterval(interval);
+    }, [text]);
+
+    return (
+        <span className="text-[10px] text-primary font-mono tracking-wide">
+            {displayed}
+            <span className="animate-pulse inline-block ml-0.5 w-1.5 h-3 bg-primary align-middle"></span>
+        </span>
+    );
+};
 
 export default function UploadView() {
     const { uploadResume, isUploading, uploadProgress, setCurrentTab } = useResumeStore();
@@ -55,6 +90,13 @@ export default function UploadView() {
             await uploadResume(selectedFile, jobDescription);
             setSuccess(true);
             setSelectedFile(null);
+            
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ["#6366f1", "#8b5cf6", "#d946ef", "#10b981"]
+            });
         } catch (e: unknown) {
             const msg = e instanceof Error ? e.message : "Pipeline error while parsing. Please check encoding parameters.";
             setError(msg);
@@ -108,9 +150,13 @@ export default function UploadView() {
                         >
                             <input {...getInputProps()} />
                             <div className="flex flex-col items-center justify-center space-y-4">
-                                <div className="inline-flex size-10 items-center justify-center rounded-xl glass-card">
-                                    <Upload className="size-4.5 text-muted-foreground" />
-                                </div>
+                                <motion.div 
+                                    animate={{ y: [0, -8, 0] }}
+                                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                                    className="inline-flex size-12 items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shadow-lg shadow-primary/20"
+                                >
+                                    <Upload className="size-5" />
+                                </motion.div>
                                 <div className="space-y-1">
                                     <h3 className="text-xs font-semibold text-foreground">
                                         {isDragActive ? "Drop document here" : "Drag and drop resume file"}
@@ -182,22 +228,31 @@ export default function UploadView() {
                         <Loader2 className="size-4 text-muted-foreground animate-spin" />
                     </div>
 
-                    <div className="space-y-2">
-                        <div className="flex justify-between text-[9px] text-muted-foreground font-mono">
-                            <span>PARSING STRUCTURAL MATRIX</span>
-                            <span>{uploadProgress}%</span>
+                    <div className="flex flex-col items-center justify-center space-y-6 py-4">
+                        <div className="relative size-24">
+                            <svg className="size-full rotate-[-90deg]" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="none" strokeWidth="8" className="stroke-secondary" />
+                                <motion.circle 
+                                    cx="50" cy="50" r="45" 
+                                    fill="none" 
+                                    strokeWidth="8" 
+                                    className="stroke-primary"
+                                    strokeLinecap="round"
+                                    strokeDasharray={283}
+                                    initial={{ strokeDashoffset: 283 }}
+                                    animate={{ strokeDashoffset: 283 - (283 * uploadProgress) / 100 }}
+                                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                                />
+                            </svg>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-lg font-bold font-mono">{uploadProgress}%</span>
+                            </div>
                         </div>
-                        <div className="w-full bg-secondary h-1 rounded-full overflow-hidden">
-                            <div
-                                className="bg-primary h-full transition-all duration-150"
-                                style={{ width: `${uploadProgress}%` }}
-                            />
+                        
+                        <div className="h-4 flex items-center justify-center">
+                            <TypewriterEffect stepIndex={Math.min(3, Math.floor((uploadProgress / 100) * AI_STEPS.length))} />
                         </div>
                     </div>
-
-                    <p className="text-[10px] text-muted-foreground leading-relaxed">
-                        Extracting qualifications metadata, identifying work history parameters, and matching keywords compliance tags...
-                    </p>
                 </div>
             )}
 

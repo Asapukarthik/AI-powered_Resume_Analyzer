@@ -58,6 +58,7 @@ export const uploadAndAnalyzeResume = async (req, res) => {
         weaknesses: analysis.atsAnalysis?.weaknesses || [],
         recommendedSkills: analysis.skillGapAnalysis?.recommendedSkills || [],
         keywords: allKeywords,
+        skillCategories: analysis.skillCategories || [],
         suggestedRoadmap: analysis.learningRoadmap || [],
         interviewQuestions: analysis.interviewQuestions || [],
         filePath: cloudinaryUrl,
@@ -76,7 +77,7 @@ export const uploadAndAnalyzeResume = async (req, res) => {
         suggestions: analysis.atsAnalysis?.recommendations || [],
       },
     });
-    console.log(text);
+    console.log(resumeText.substring(0, 50));
 
     return res.status(201).json({
       message: 'Resume analyzed successfully',

@@ -83,6 +83,13 @@ Return ONLY valid JSON.
     "recommendedSkills": []
   },
 
+  "skillCategories": [
+    {
+      "category": "Frontend",
+      "score": 0
+    }
+  ],
+
   "learningRoadmap": [
     {
       "step": 1,
@@ -133,8 +140,8 @@ Rules:
    - 5 technical questions
    - 5 HR question
    - 5 project question
-5. Recommendations must be actionable.
-6. Return ONLY JSON.
+6. Recommendations must be actionable.
+7. Return ONLY JSON.
 `;
 
       const response = await ai.models.generateContent({

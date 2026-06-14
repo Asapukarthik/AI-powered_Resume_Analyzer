@@ -47,6 +47,7 @@ model Resume {
   strengths            Json?
   weaknesses           Json?
   keywords             Json?
+  skillCategories      Json?
   recommendedSkills    Json?
   suggestedRoadmap     Json?
   interviewQuestions   Json?

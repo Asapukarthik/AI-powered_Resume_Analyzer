@@ -11,6 +11,8 @@ import {
     Minus,
     Calendar
 } from "lucide-react";
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from "recharts";
+import ExportReportButton from "./ExportReportButton";
 
 export default function OverviewView() {
     const { resumes, activeResume, setCurrentTab, setActiveResume } = useResumeStore();
@@ -31,15 +33,21 @@ export default function OverviewView() {
                     <h1 className="text-2xl font-bold tracking-tight text-foreground font-sans">Dashboard</h1>
                     <p className="text-xs text-muted-foreground font-medium">Real-time resume parsed metadata metrics and compliance trends.</p>
                 </div>
-                <button
-                    onClick={() => setCurrentTab("upload")}
-                    className="self-start sm:self-center h-10 px-5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold transition-all shadow-lg hover:shadow-indigo-500/25 flex items-center gap-2 hover:-translate-y-0.5"
-                >
-                    <Plus className="size-4" />
-                    New Scan
-                </button>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                    {activeResume && (
+                        <ExportReportButton resume={activeResume} filename={`${activeResume.name.replace(/\s+/g, '_')}_ATS_Report.pdf`} />
+                    )}
+                    <button
+                        onClick={() => setCurrentTab("upload")}
+                        className="self-start sm:self-center h-10 px-5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold transition-all shadow-lg hover:shadow-indigo-500/25 flex items-center gap-2 hover:-translate-y-0.5"
+                    >
+                        <Plus className="size-4" />
+                        New Scan
+                    </button>
+                </div>
             </div>
 
+            <div id="report-container" className="space-y-10">
             {/* Quick Metrics Grid */}
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {/* Metric 1 */}
@@ -216,6 +224,51 @@ export default function OverviewView() {
                         </div>
                     )}
 
+                    {/* Multidimensional Radar Chart */}
+                    {activeResume && activeResume.skillCategories && activeResume.skillCategories.length > 0 && (
+                        <div className="rounded-xl glass-card glass-card-hover p-8 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">Alignment Radar</span>
+                                <span className="text-[10px] text-primary font-mono font-bold uppercase">Multidimensional</span>
+                            </div>
+                            <div className="h-[280px] w-full pt-4">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <RadarChart cx="50%" cy="50%" outerRadius="75%" data={activeResume.skillCategories}>
+                                        <PolarGrid stroke="var(--border)" strokeOpacity={0.6} />
+                                        <PolarAngleAxis 
+                                            dataKey="category" 
+                                            tick={{ fill: "var(--foreground)", fontSize: 11, fontFamily: "sans-serif", fontWeight: 600 }} 
+                                        />
+                                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                        <Radar 
+                                            name="Candidate Score" 
+                                            dataKey="score" 
+                                            stroke="var(--primary)" 
+                                            strokeWidth={2}
+                                            fill="var(--primary)" 
+                                            fillOpacity={0.35} 
+                                            animationBegin={200}
+                                            animationDuration={1500} 
+                                            animationEasing="ease-out"
+                                        />
+                                        <Tooltip 
+                                            contentStyle={{ 
+                                                backgroundColor: "var(--card)", 
+                                                borderColor: "var(--border)", 
+                                                borderRadius: "12px", 
+                                                boxShadow: "0 10px 30px -5px rgba(0,0,0,0.2)",
+                                                fontSize: "12px",
+                                                fontWeight: 600,
+                                                color: "var(--foreground)"
+                                            }}
+                                            itemStyle={{ color: "var(--primary)" }}
+                                        />
+                                    </RadarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    )}
+
                     {/* SVG Sparkline ATS History Trend */}
                     {activeResume && (
                         <div className="rounded-xl glass-card glass-card-hover p-8 space-y-4">
@@ -324,7 +377,7 @@ export default function OverviewView() {
                         </button>
                     </div>
                 </div>
-
+            </div>
             </div>
         </div>
     );

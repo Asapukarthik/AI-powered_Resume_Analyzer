@@ -87,7 +87,7 @@ export default function LoginPage() {
 
             localStorage.setItem("token", data.token);
             setSuccess(true);
-            console.log(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
+            // console.log(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
             router.replace("/dashboard");
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : "Google auth failed.");
