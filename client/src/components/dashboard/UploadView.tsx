@@ -5,6 +5,7 @@ import { useDropzone } from "react-dropzone";
 import { useResumeStore } from "@/hooks/useResumeStore";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
+import RobotLoader from "@/components/ui/RobotLoader";
 import { 
     Upload, 
     FileText, 
@@ -15,10 +16,11 @@ import {
 } from "lucide-react";
 
 const AI_STEPS = [
-    "Analyzing Resume...",
-    "Checking ATS Alignment...",
-    "Matching Core Skills...",
-    "Generating Strategic Suggestions..."
+    "Reading resume file...",
+    "Extracting text content...",
+    "Analyzing with Gemini AI...",
+    "Calculating ATS score...",
+    "Generating recommendations..."
 ];
 
 const TypewriterEffect = ({ stepIndex }: { stepIndex: number }) => {
@@ -218,40 +220,51 @@ export default function UploadView() {
             {isUploading && uploadedFile && (
                 <div className="rounded-xl glass-card p-6 space-y-6">
                     <div className="flex items-center gap-4 border-b border-border pb-4">
-                        <div className="h-9 w-9 rounded-lg bg-secondary border border-border flex items-center justify-center">
-                            <FileText className="size-4 text-muted-foreground" />
+                        <div className="h-9 w-9 rounded-lg bg-secondary/50 border border-border flex items-center justify-center">
+                            <FileText className="size-4 text-indigo-600 dark:text-indigo-400" />
                         </div>
                         <div className="min-w-0 flex-1">
                             <h4 className="text-xs font-semibold text-foreground truncate font-mono">{uploadedFile.name}</h4>
                             <span className="text-[9px] text-muted-foreground font-mono block mt-0.5">{uploadedFile.size}</span>
                         </div>
-                        <Loader2 className="size-4 text-muted-foreground animate-spin" />
                     </div>
 
-                    <div className="flex flex-col items-center justify-center space-y-6 py-4">
-                        <div className="relative size-24">
-                            <svg className="size-full rotate-[-90deg]" viewBox="0 0 100 100">
-                                <circle cx="50" cy="50" r="45" fill="none" strokeWidth="8" className="stroke-secondary" />
-                                <motion.circle 
-                                    cx="50" cy="50" r="45" 
-                                    fill="none" 
-                                    strokeWidth="8" 
-                                    className="stroke-primary"
-                                    strokeLinecap="round"
-                                    strokeDasharray={283}
-                                    initial={{ strokeDashoffset: 283 }}
-                                    animate={{ strokeDashoffset: 283 - (283 * uploadProgress) / 100 }}
-                                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                                />
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-lg font-bold font-mono">{uploadProgress}%</span>
-                            </div>
+                    <div className="py-4 flex flex-col space-y-5 max-w-sm mx-auto w-full">
+                        <div className="flex justify-center mb-2">
+                            <RobotLoader isCompact={true} />
                         </div>
-                        
-                        <div className="h-4 flex items-center justify-center">
-                            <TypewriterEffect stepIndex={Math.min(3, Math.floor((uploadProgress / 100) * AI_STEPS.length))} />
-                        </div>
+                        {AI_STEPS.map((step, index) => {
+                            const currentStepIndex = Math.min(AI_STEPS.length - 1, Math.floor((uploadProgress / 100) * AI_STEPS.length));
+                            const isCompleted = index < currentStepIndex || (index === AI_STEPS.length - 1 && uploadProgress >= 100);
+                            const isActive = index === currentStepIndex && uploadProgress < 100;
+                            const isPending = index > currentStepIndex;
+
+                            return (
+                                <div key={index} className={`flex items-center gap-4 transition-all duration-300 ${isPending ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
+                                    <div className="flex-shrink-0 flex items-center justify-center">
+                                        {isCompleted ? (
+                                            <div className="size-5 rounded-full border border-green-500/30 bg-green-500/10 flex items-center justify-center">
+                                                <CheckCircle2 className="size-3.5 text-green-500" />
+                                            </div>
+                                        ) : isActive ? (
+                                            <div className="size-5 rounded-full bg-indigo-500/10 flex items-center justify-center">
+                                                <Loader2 className="size-3.5 text-indigo-500 animate-spin" />
+                                            </div>
+                                        ) : (
+                                            <div className="size-5 rounded-full border border-border" />
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className={`text-sm font-medium ${isActive ? 'text-foreground' : isCompleted ? 'text-foreground/70' : 'text-muted-foreground'}`}>
+                                            {step}
+                                        </span>
+                                        {isActive && (
+                                            <span className="text-[10px] text-indigo-500/80 animate-pulse font-medium">Processing...</span>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}

@@ -29,10 +29,19 @@ app.use(
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: "Too many requests. Try again later."
+  message: "Too many requests. Please wait 15 minutes and try again."
 });
 
-// app.use(limiter);
+// Stricter limiter for the expensive AI analysis route (10 uploads per 15 min per IP)
+export const analysisLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "Too many resume uploads. You can analyze up to 10 resumes per 15 minutes. Please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use(limiter);
 
 
 // Middleware

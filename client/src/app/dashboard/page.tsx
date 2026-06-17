@@ -18,6 +18,8 @@ import SettingsView from "@/components/dashboard/SettingsView";
 import AIChatbot from "@/components/dashboard/AIChatbot";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { AnimatePresence, motion } from "framer-motion";
+import RobotLoader from "@/components/ui/RobotLoader";
+import { toast } from "react-hot-toast";
 
 import {
     Layers,
@@ -155,10 +157,13 @@ export default function DashboardPage() {
     };
 
     const handleSignOut = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-
-        router.replace("/login");
+        toast.loading("Disconnecting session...", { id: "signout" });
+        setTimeout(() => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            toast.success("Successfully logged out", { id: "signout" });
+            router.replace("/login");
+        }, 1000);
     };
 
     // Responsive views mapping
@@ -188,14 +193,10 @@ export default function DashboardPage() {
 
     if (authLoading) {
         return (
-            <main className="min-h-screen flex items-center justify-center bg-background">
-                <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="size-10 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground">
-                        Verifying session...
-                    </p>
-                </div>
-            </main>
+            <RobotLoader
+                text="Verifying session..."
+                subtext="Checking authentication credentials and syncing workspace configuration..."
+            />
         );
     }
 
@@ -204,12 +205,12 @@ export default function DashboardPage() {
     }
 
     return (
-        <main className="relative min-h-screen bg-background text-foreground flex overflow-hidden selection:bg-primary/25">
+        <main className="relative h-screen bg-background text-foreground flex overflow-hidden selection:bg-primary/25">
             <MeshGradientBackground />
             <BackgroundParticles />
 
             {/* --- DESKTOP SIDEBAR NAVIGATION --- */}
-            <aside className={`hidden lg:flex flex-col border-r border-border bg-background/40 backdrop-blur-xl shrink-0 relative z-20 transition-all duration-300 ${isSidebarCollapsed ? "w-20" : "w-64"}`}>
+            <aside className={`hidden lg:flex flex-col border-r border-border bg-background/40 backdrop-blur-xl shrink-0 relative z-20 transition-[width] duration-300 ease-in-out will-change-[width] overflow-hidden ${isSidebarCollapsed ? "w-20" : "w-60"}`}>
                 {/* Collapse Toggle */}
                 <button
                     onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
@@ -227,7 +228,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Main Link Options */}
-                <nav className="flex-1 space-y-2 px-2 py-6 overflow-hidden">
+                <nav className="flex-1 space-y-2 px-2 py-6 overflow-y-auto overflow-x-hidden">
                     {NAV_ITEMS.map((item) => {
                         const isActive = currentTab === item.value;
                         return (
@@ -247,24 +248,7 @@ export default function DashboardPage() {
                     })}
                 </nav>
 
-                {/* Upgrade to Pro Card */}
-                {!isSidebarCollapsed && (
-                    <div className="p-4 mx-3 mb-4 rounded-2xl bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-pink-500/10 border border-indigo-500/15 relative overflow-hidden group">
-                        <div className="absolute -right-6 -top-6 w-16 h-16 bg-indigo-500/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
-                        <div className="relative z-10">
-                            <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                                <Sparkles className="size-3.5 text-indigo-500 animate-pulse" />
-                                Upgrade to Pro
-                            </h4>
-                            <p className="text-[10px] text-muted-foreground mt-1 leading-normal">
-                                Get unlimited resume scans, advanced job matching, and AI suggestions.
-                            </p>
-                            <button className="w-full mt-3 h-7 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold transition-all shadow-lg shadow-indigo-600/15 cursor-pointer">
-                                Upgrade Now
-                            </button>
-                        </div>
-                    </div>
-                )}
+
 
                 {/* Sidebar User Profile at bottom */}
                 <div className="border-t border-border/60 p-3 relative">
@@ -311,7 +295,7 @@ export default function DashboardPage() {
             </aside>
 
             {/* --- RIGHT CONTENT PANEL --- */}
-            <div className="flex-1 flex flex-col min-w-0 h-screen relative z-10 overflow-hidden">
+            <div className="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 overflow-hidden">
                 {/* --- STICKY TOP NAVBAR --- */}
                 <header className="sticky top-0 z-30 w-full flex h-16 shrink-0 items-center justify-between border-b border-border bg-background/40 backdrop-blur-xl px-4 sm:px-6">
                     {/* Mobile Hamburger Drawer Menu Toggle */}
@@ -429,29 +413,31 @@ export default function DashboardPage() {
                 </header>
 
                 {/* --- MAIN PAGE SCROLLABLE CONTENT --- */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-16">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={currentTab}
-                            initial={{
-                                opacity: 0,
-                                y: 20,
-                            }}
-                            animate={{
-                                opacity: 1,
-                                y: 0,
-                            }}
-                            exit={{
-                                opacity: 0,
-                                y: -20,
-                            }}
-                            transition={{
-                                duration: 0.25,
-                            }}
-                        >
-                            {renderActiveView()}
-                        </motion.div>
-                    </AnimatePresence>
+                <div className="flex-1 overflow-y-auto w-full [scrollbar-gutter:stable]">
+                    <div className="mx-auto max-w-[1600px] p-6">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentTab}
+                                initial={{
+                                    opacity: 0,
+                                    y: 20,
+                                }}
+                                animate={{
+                                    opacity: 1,
+                                    y: 0,
+                                }}
+                                exit={{
+                                    opacity: 0,
+                                    y: -20,
+                                }}
+                                transition={{
+                                    duration: 0.25,
+                                }}
+                            >
+                                {renderActiveView()}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
                 </div>
             </div>
 
@@ -462,8 +448,8 @@ export default function DashboardPage() {
                         {/* Close button inside drawer */}
                         <div className="flex h-16 items-center justify-between px-6 border-b border-border">
                             <div className="flex items-center gap-2">
-                                <Layers className="size-4 text-primary" />
-                                <span className="text-xs font-semibold tracking-tight">Resume<span className="text-primary">.ai</span></span>
+                                <Layers className="size-4 text-indigo-600" />
+                                <span className="text-xs font-semibold tracking-tight">Resume<span className="text-indigo-600">.ai</span></span>
                             </div>
                             <button
                                 onClick={() => setMobileMenuOpen(false)}
@@ -485,7 +471,7 @@ export default function DashboardPage() {
                                             setMobileMenuOpen(false);
                                         }}
                                         className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-colors ${isActive
-                                            ? "bg-secondary text-foreground border border-border"
+                                            ? "bg-indigo-50/70 text-indigo-600 dark:bg-indigo-950/20 dark:text-indigo-400 border-l-2 border-indigo-600 dark:border-indigo-400"
                                             : "text-muted-foreground hover:text-foreground/80"
                                             }`}
                                     >
@@ -509,7 +495,7 @@ export default function DashboardPage() {
                             </div>
                             <button
                                 onClick={handleSignOut}
-                                className="w-full h-8 flex items-center gap-2 justify-center rounded-lg border border-border bg-card hover:bg-secondary hover:text-foreground transition-colors text-[10px] font-bold text-muted-foreground"
+                                className="w-full h-8 flex items-center gap-2 justify-center rounded-lg border border-red-500/20 bg-red-500/5 hover:bg-red-500/10 hover:text-red-600 transition-colors text-[10px] font-bold text-red-500"
                             >
                                 <LogOut className="size-3.5" />
                                 Disconnect Session

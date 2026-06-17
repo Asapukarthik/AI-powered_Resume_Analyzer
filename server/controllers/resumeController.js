@@ -13,9 +13,7 @@ export const uploadAndAnalyzeResume = async (req, res) => {
       return res.status(400).json({ error: 'Resume file is required' });
     }
 
-    if (!jobDescription) {
-      return res.status(400).json({ error: 'Job description is required' });
-    }
+    // Job description is now optional, handled dynamically by AI
 
     // 1. Extract text from the uploaded file
     const resumeText = await extractTextFromFile(file.buffer, file.mimetype, file.originalname);
@@ -61,6 +59,9 @@ export const uploadAndAnalyzeResume = async (req, res) => {
         skillCategories: analysis.skillCategories || [],
         suggestedRoadmap: analysis.learningRoadmap || [],
         interviewQuestions: analysis.interviewQuestions || [],
+        resumeOptimization: analysis.resumeOptimization || null,
+        projectFeedback: analysis.projectFeedback || null,
+        recruiterView: analysis.recruiterView || null,
         filePath: cloudinaryUrl,
       },
     });

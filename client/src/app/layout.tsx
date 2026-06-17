@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { ResumeProvider } from "@/hooks/useResumeStore";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
     subsets: ["latin"],
@@ -44,7 +45,10 @@ export default function RootLayout({
             <body className="bg-background text-foreground antialiased selection:bg-primary/25 selection:text-foreground min-h-screen">
                 <GoogleOAuthProvider clientId={clientId}>
                     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-                        <ResumeProvider>{children}</ResumeProvider>
+                        <ResumeProvider>
+                            {children}
+                            <Toaster position="top-right" />
+                        </ResumeProvider>
                     </ThemeProvider>
                 </GoogleOAuthProvider>
             </body>

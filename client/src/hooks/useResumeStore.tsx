@@ -29,6 +29,22 @@ export interface SkillCategory {
     score: number;
 }
 
+export interface ResumeOptimization {
+    rewrittenSummary: string;
+    improvedBulletPoints: string[];
+}
+
+export interface ProjectFeedback {
+    project: string;
+    score: number;
+    suggestions: string[];
+}
+
+export interface RecruiterView {
+    hireRecommendation: string;
+    riskFactors: string[];
+}
+
 export interface ResumeData {
     id: string;
     name: string;
@@ -46,6 +62,9 @@ export interface ResumeData {
     recommendedSkills: string[];
     suggestedRoadmap: RoadmapStep[];
     interviewQuestions: Question[];
+    resumeOptimization: ResumeOptimization | null;
+    projectFeedback: ProjectFeedback[] | null;
+    recruiterView: RecruiterView | null;
 }
 
 interface UserProfile {
@@ -101,6 +120,9 @@ interface BackendResume {
     recommendedSkills?: string[];
     suggestedRoadmap?: RoadmapStep[];
     interviewQuestions?: Question[];
+    resumeOptimization?: ResumeOptimization | null;
+    projectFeedback?: ProjectFeedback[] | null;
+    recruiterView?: RecruiterView | null;
 }
 
 
@@ -154,7 +176,10 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
                         skillCategories: r.skillCategories || [],
                         recommendedSkills: r.recommendedSkills || [],
                         suggestedRoadmap: r.suggestedRoadmap || [],
-                        interviewQuestions: r.interviewQuestions || []
+                        interviewQuestions: r.interviewQuestions || [],
+                        resumeOptimization: r.resumeOptimization || null,
+                        projectFeedback: r.projectFeedback || null,
+                        recruiterView: r.recruiterView || null,
                     }));
 
                     setResumes(mappedResumes);
@@ -189,11 +214,8 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
             const formData = new FormData();
             formData.append("resume", file);
 
-            // Use mock job description if not provided
-            const finalJobDescription = jobDescription.trim() ||
-                "Software Engineer with experience in React, Node.js, and Cloud Infrastructure. Must be able to work in agile teams and deliver scalable web applications.";
-
-            formData.append("jobDescription", finalJobDescription);
+            // Send job description as-is (empty string if not provided — the AI will infer the role)
+            formData.append("jobDescription", jobDescription.trim());
 
             const token = localStorage.getItem("token");
 
@@ -233,6 +255,9 @@ export function ResumeProvider({ children }: { children: React.ReactNode }) {
                 recommendedSkills: (resumeRecord.recommendedSkills as string[]) || [],
                 suggestedRoadmap: (resumeRecord.suggestedRoadmap as RoadmapStep[]) || [],
                 interviewQuestions: (resumeRecord.interviewQuestions as Question[]) || [],
+                resumeOptimization: (resumeRecord.resumeOptimization as ResumeOptimization) || null,
+                projectFeedback: (resumeRecord.projectFeedback as ProjectFeedback[]) || null,
+                recruiterView: (resumeRecord.recruiterView as RecruiterView) || null,
             };
 
             setResumes(prev => [newResume, ...prev]);

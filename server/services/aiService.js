@@ -14,13 +14,16 @@ export const analyzeResume = async (resumeText, jobDescription) => {
         apiKey: process.env.GEMINI_API_KEY,
       });
 
+      const jobContext = jobDescription && jobDescription.trim() !== ""
+        ? `JOB DESCRIPTION:\n${jobDescription}`
+        : `JOB DESCRIPTION:\nNot provided. Please infer the candidate's target role based on their resume and evaluate their resume and market readiness against standard industry expectations for that inferred role.`;
+
       const prompt = `
 You are an expert ATS system, recruiter, career coach, and technical interviewer.
 
-Analyze the resume against the provided job description.
+Analyze the resume against the provided job description or inferred role.
 
-JOB DESCRIPTION:
-${jobDescription}
+${jobContext}
 
 RESUME:
 ${resumeText}
@@ -84,10 +87,11 @@ Return ONLY valid JSON.
   },
 
   "skillCategories": [
-    {
-      "category": "Frontend",
-      "score": 0
-    }
+    { "category": "<Domain-specific category e.g. Machine Learning>", "score": 0 },
+    { "category": "<Domain-specific category e.g. Cloud Infrastructure>", "score": 0 },
+    { "category": "<Domain-specific category e.g. System Design>", "score": 0 },
+    { "category": "<Domain-specific category e.g. DevOps & CI/CD>", "score": 0 },
+    { "category": "<Domain-specific category e.g. Soft Skills>", "score": 0 }
   ],
 
   "learningRoadmap": [
@@ -138,10 +142,11 @@ Rules:
 3. Generate exactly 3 roadmap steps.
 4. Generate at least:
    - 5 technical questions
-   - 5 HR question
-   - 5 project question
+   - 5 HR questions
+   - 5 project questions
+5. For skillCategories: generate exactly 5 categories that are SPECIFIC to the candidate's domain (e.g. if they are a Data Scientist use categories like "Machine Learning", "Data Engineering", "Statistics", "MLOps", "Soft Skills"). Do NOT use generic names like "Core Skills" or "Category 1".
 6. Recommendations must be actionable.
-7. Return ONLY JSON.
+7. Return ONLY JSON with no markdown, no code fences, no extra text.
 `;
 
       const response = await ai.models.generateContent({

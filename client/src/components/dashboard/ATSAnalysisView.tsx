@@ -7,7 +7,12 @@ import {
     TrendingUp,
     FileCode,
     Check,
-    AlertCircle
+    AlertCircle,
+    UserCheck,
+    AlertTriangle,
+    Lightbulb,
+    Pen,
+    ArrowRight
 } from "lucide-react";
 
 export default function ATSAnalysisView() {
@@ -37,6 +42,22 @@ export default function ATSAnalysisView() {
     const matchedKws = activeResume.keywords.filter(k => k.category === "matched");
     const missingKws = activeResume.keywords.filter(k => k.category === "missing");
     const overusedKws = activeResume.keywords.filter(k => k.category === "overused");
+
+    // Recruiter & optimization data
+    const recruiterView = activeResume.recruiterView;
+    const resumeOpt = activeResume.resumeOptimization;
+
+    // Determine hire recommendation styling
+    const getRecommendationStyle = (rec: string) => {
+        const lower = rec.toLowerCase();
+        if (lower.includes("strong") || lower.includes("yes") || lower.includes("recommend")) {
+            return { bg: "bg-emerald-500/10", border: "border-emerald-500/30", text: "text-emerald-400", icon: "✓" };
+        }
+        if (lower.includes("no") || lower.includes("reject") || lower.includes("not")) {
+            return { bg: "bg-red-500/10", border: "border-red-500/30", text: "text-red-400", icon: "✗" };
+        }
+        return { bg: "bg-amber-500/10", border: "border-amber-500/30", text: "text-amber-400", icon: "~" };
+    };
 
     return (
         <div className="space-y-10 text-left max-w-7xl mx-auto py-2">
@@ -213,6 +234,115 @@ export default function ATSAnalysisView() {
                     </div>
                 </div>
             </div>
+
+            {/* --- RECRUITER VIEW CARD --- */}
+            {recruiterView && recruiterView.hireRecommendation && (
+                <div className="rounded-xl border border-border bg-card p-6 space-y-6">
+                    <div className="flex items-center justify-between border-b border-border pb-4">
+                        <div className="flex items-center gap-2.5">
+                            <div className="inline-flex size-9 items-center justify-center rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                                <UserCheck className="size-4.5 text-indigo-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-semibold text-foreground font-sans">Recruiter Insight</h3>
+                                <p className="text-[10px] text-muted-foreground font-mono mt-0.5">AI-simulated hiring decision based on resume analysis</p>
+                            </div>
+                        </div>
+                        <span className="text-[9px] font-mono uppercase text-muted-foreground tracking-wider bg-secondary border border-border px-2 py-0.5 rounded">AI GENERATED</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Hire Recommendation */}
+                        <div className="space-y-3">
+                            <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider block">Hire Recommendation</span>
+                            {(() => {
+                                const style = getRecommendationStyle(recruiterView.hireRecommendation);
+                                return (
+                                    <div className={`rounded-lg ${style.bg} border ${style.border} p-4`}>
+                                        <div className="flex items-start gap-3">
+                                            <span className={`text-lg font-bold ${style.text} shrink-0 mt-0.5`}>{style.icon}</span>
+                                            <p className={`text-xs ${style.text} font-medium leading-relaxed`}>
+                                                {recruiterView.hireRecommendation}
+                                            </p>
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+                        </div>
+
+                        {/* Risk Factors */}
+                        {recruiterView.riskFactors && recruiterView.riskFactors.length > 0 && (
+                            <div className="space-y-3">
+                                <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-1.5">
+                                    <AlertTriangle className="size-3 text-amber-400/70" />
+                                    Risk Factors ({recruiterView.riskFactors.length})
+                                </span>
+                                <ul className="space-y-2.5">
+                                    {recruiterView.riskFactors.map((risk, idx) => (
+                                        <li key={idx} className="flex items-start gap-2 text-xs text-muted-foreground leading-relaxed">
+                                            <span className="shrink-0 mt-1.5 h-1.5 w-1.5 rounded-full bg-amber-500/50" />
+                                            {risk}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* --- RESUME OPTIMIZATION CARD --- */}
+            {resumeOpt && (resumeOpt.rewrittenSummary || (resumeOpt.improvedBulletPoints && resumeOpt.improvedBulletPoints.length > 0)) && (
+                <div className="rounded-xl border border-border bg-card p-6 space-y-6">
+                    <div className="flex items-center justify-between border-b border-border pb-4">
+                        <div className="flex items-center gap-2.5">
+                            <div className="inline-flex size-9 items-center justify-center rounded-lg bg-violet-500/10 border border-violet-500/20">
+                                <Pen className="size-4 text-violet-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-semibold text-foreground font-sans">Resume Rewriter</h3>
+                                <p className="text-[10px] text-muted-foreground font-mono mt-0.5">AI-optimized content suggestions to boost your ATS score</p>
+                            </div>
+                        </div>
+                        <span className="text-[9px] font-mono uppercase text-muted-foreground tracking-wider bg-secondary border border-border px-2 py-0.5 rounded">SUGGESTIONS</span>
+                    </div>
+
+                    {/* Rewritten Summary */}
+                    {resumeOpt.rewrittenSummary && (
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                                <Lightbulb className="size-3.5 text-amber-400/70" />
+                                <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">Optimized Professional Summary</span>
+                            </div>
+                            <div className="rounded-lg bg-secondary/30 border border-border p-4">
+                                <p className="text-xs text-foreground/90 leading-relaxed font-sans italic">
+                                    &ldquo;{resumeOpt.rewrittenSummary}&rdquo;
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Improved Bullet Points */}
+                    {resumeOpt.improvedBulletPoints && resumeOpt.improvedBulletPoints.length > 0 && (
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2">
+                                <ArrowRight className="size-3.5 text-violet-400/70" />
+                                <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">Improved Bullet Points ({resumeOpt.improvedBulletPoints.length})</span>
+                            </div>
+                            <ul className="space-y-2.5">
+                                {resumeOpt.improvedBulletPoints.map((bullet, idx) => (
+                                    <li key={idx} className="flex items-start gap-3 rounded-lg bg-secondary/20 border border-border/50 p-3 text-xs text-foreground/85 leading-relaxed font-sans group hover:bg-secondary/40 transition-colors">
+                                        <span className="shrink-0 mt-0.5 inline-flex items-center justify-center size-5 rounded-md bg-violet-500/10 border border-violet-500/20 text-[9px] font-bold font-mono text-violet-400">
+                                            {idx + 1}
+                                        </span>
+                                        {bullet}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

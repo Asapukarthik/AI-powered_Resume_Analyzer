@@ -1,26 +1,20 @@
 import express from 'express';
-import multer from 'multer';
 import { uploadAndAnalyzeResume, getUserResumes, deleteResume } from '../controllers/resumeController.js';
 import { protect } from '../middleware/auth.js';
+import { upload } from '../middleware/upload.js';
+import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
 
-// Configure multer for memory storage (buffer)
-const storage = multer.memoryStorage();
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype === 'application/pdf' || file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.mimetype === 'application/msword') {
-      cb(null, true);
-    } else {
-      cb(new Error('Only PDF and Word documents are allowed'), false);
-    }
-  }
+// Stricter rate limiter for the expensive AI analysis endpoint
+const analysisLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "Too many resume analysis requests. Please wait 15 minutes and try again." }
 });
 
 // Protect the routes with authenticateToken middleware
-router.post('/analyze', protect, upload.single('resume'), uploadAndAnalyzeResume);
+router.post('/analyze', protect, analysisLimiter, upload.single('resume'), uploadAndAnalyzeResume);
 router.get('/', protect, getUserResumes);
 router.delete('/:id', protect, deleteResume);
 
