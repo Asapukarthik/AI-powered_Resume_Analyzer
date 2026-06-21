@@ -56,7 +56,8 @@ export default function DashboardPage() {
         setActiveResume,
         user,
         updateUser,
-        updateSettings
+        updateSettings,
+        clearStore
     } = useResumeStore();
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -163,6 +164,7 @@ export default function DashboardPage() {
         setTimeout(() => {
             localStorage.removeItem("token");
             localStorage.removeItem("user");
+            clearStore();
             toast.success("Successfully logged out", { id: "signout" });
             router.replace("/login");
         }, 1000);

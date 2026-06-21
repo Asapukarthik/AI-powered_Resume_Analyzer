@@ -104,6 +104,7 @@ interface ResumeStoreState {
     deleteAvatar: () => Promise<void>;
     settings: AppSettings;
     updateSettings: (settings: Partial<AppSettings>) => void;
+    clearStore: () => void;
 }
 
 interface BackendResume {
@@ -137,6 +138,18 @@ export const useResumeStore = create<ResumeStoreState>()(
             resumes: [],
             activeResume: null,
             setActiveResume: (resume) => set({ activeResume: resume }),
+
+            clearStore: () => set({
+                currentTab: "overview",
+                resumes: [],
+                activeResume: null,
+                user: {
+                    name: "John Doe",
+                    email: "john@example.com",
+                    avatar: "",
+                    tier: "Professional Plan"
+                }
+            }),
 
             isUploading: false,
             uploadProgress: 0,
