@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { AlertOctagon, RefreshCcw } from "lucide-react";
-import MeshGradientBackground from "@/components/layout/MeshGradientBackground";
+import VercelBackground from "@/components/layout/VercelBackground";
 import BackgroundParticles from "@/components/layout/BackgroundParticles";
 export default function ErrorPage({
     error,
@@ -17,7 +17,7 @@ export default function ErrorPage({
     }, [error]);
     return (
         <main className="relative min-h-screen bg-background text-foreground flex items-center justify-center overflow-hidden">
-            <MeshGradientBackground />
+            <VercelBackground />
             <BackgroundParticles />
 
             <div className="relative z-10 text-center space-y-6 p-8 max-w-md mx-auto">

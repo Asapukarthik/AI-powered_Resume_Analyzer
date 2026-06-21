@@ -1,166 +1,318 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { useResumeStore } from "@/hooks/useResumeStore";
 import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, X, Send, Loader2, Bot, User } from "lucide-react";
+import { X, Send, Loader2, User, Sparkles, Target, TrendingUp, Mic, Search, Map } from "lucide-react";
+
+// Mascot image imports
+import mascotIdle from "@/assets/mascot-idle.png";
+import mascotHappy from "@/assets/mascot-happy.png";
+import mascotThinking from "@/assets/mascot-thinking.png";
+import mascotTyping from "@/assets/mascot-typing.png";
+import mascotConfused from "@/assets/mascot-confused.png";
+import mascotLoading from "@/assets/mascot-loading.png";
+
+type MascotState = "idle" | "thinking" | "typing" | "happy" | "confused" | "loading";
+
+const mascotMap: Record<MascotState, typeof mascotIdle> = {
+    idle: mascotIdle,
+    happy: mascotHappy,
+    thinking: mascotThinking,
+    typing: mascotTyping,
+    confused: mascotConfused,
+    loading: mascotLoading,
+};
+
+const SUGGESTED_ACTIONS = [
+    { icon: <Target className="size-3" />, label: "Analyze Resume", message: "Analyze my resume and give me a detailed breakdown of its strengths and weaknesses." },
+    { icon: <TrendingUp className="size-3" />, label: "Improve ATS Score", message: "How can I improve my ATS score and make my resume more compatible with applicant tracking systems?" },
+    { icon: <Mic className="size-3" />, label: "Interview Questions", message: "Generate interview questions based on my resume that I should prepare for." },
+    { icon: <Search className="size-3" />, label: "Missing Skills", message: "What key skills am I missing that would make my profile stronger for my target role?" },
+    { icon: <Map className="size-3" />, label: "Career Roadmap", message: "Create a personalized career roadmap for me based on my current skills and experience." },
+];
 
 export default function AIChatbot() {
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState<{ role: "user" | "bot"; content: string }[]>([
-        { role: "bot", content: "Hi! I'm Resume.ai Bot. How can I help you with your career or resume today?" }
-    ]);
+    const [messages, setMessages] = useState<{ role: "user" | "bot"; content: string }[]>([]);
     const [input, setInput] = useState("");
     const [isTyping, setIsTyping] = useState(false);
-    
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { activeResume } = useResumeStore();
+    const [mascotState, setMascotState] = useState<MascotState>("idle");
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const { activeResume } = useResumeStore();
 
     useEffect(() => {
         if (isOpen) {
-            scrollToBottom();
+            setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+            setTimeout(() => inputRef.current?.focus(), 300);
         }
     }, [messages, isOpen]);
 
-    const handleSend = async () => {
-        if (!input.trim()) return;
+    useEffect(() => {
+        return () => { if (resetTimerRef.current) clearTimeout(resetTimerRef.current); };
+    }, []);
 
-        const userMsg = input.trim();
+    const setMascotWithReset = (state: MascotState, resetAfterMs?: number) => {
+        setMascotState(state);
+        if (resetAfterMs) {
+            if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
+            resetTimerRef.current = setTimeout(() => setMascotState("idle"), resetAfterMs);
+        }
+    };
+
+    const sendMessage = async (text: string) => {
+        if (!text.trim()) return;
+        const userMsg = text.trim();
         setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
         setInput("");
         setIsTyping(true);
+        setMascotWithReset("thinking");
 
         try {
             const token = localStorage.getItem("token");
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    message: userMsg,
-                    resumeId: activeResume?.id || null
-                })
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ message: userMsg, resumeId: activeResume?.id || null })
             });
-
-            if (!res.ok) {
-                throw new Error("Failed to fetch response");
-            }
-
+            setMascotState("typing");
             const data = await res.json();
-            setMessages((prev) => [...prev, { role: "bot", content: data.reply }]);
-        } catch (error) {
-            console.error("Chatbot error:", error);
-            setMessages((prev) => [...prev, { role: "bot", content: "Sorry, I'm having trouble connecting right now." }]);
+            setMessages((prev) => [...prev, { role: "bot", content: data.reply || "Sorry, I couldn't get a response." }]);
+            setMascotWithReset("happy", 2500);
+        } catch {
+            setMessages((prev) => [...prev, { role: "bot", content: "Sorry, I'm having trouble connecting right now. Please try again." }]);
+            setMascotWithReset("confused", 2500);
         } finally {
             setIsTyping(false);
         }
     };
 
+    const handleSend = () => sendMessage(input);
+    const handleSuggestion = (msg: string) => sendMessage(msg);
+
+    const currentMascot = mascotMap[mascotState];
+
     return (
-        <div className="fixed bottom-6 right-6 z-50">
+        <>
+            {/* Backdrop */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                        key="backdrop"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute bottom-16 right-0 w-80 sm:w-96 h-[500px] max-h-[70vh] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+                        className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px]"
+                        onClick={() => setIsOpen(false)}
+                    />
+                )}
+            </AnimatePresence>
+
+            {/* Glassmorphic Sidebar Panel */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        key="panel"
+                        initial={{ x: "100%", opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: "100%", opacity: 0 }}
+                        transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                        className="fixed right-0 top-0 h-full w-[380px] max-w-[95vw] z-50 flex flex-col"
+                        style={{
+                            background: "var(--card)",
+                            backdropFilter: "blur(40px)",
+                            WebkitBackdropFilter: "blur(40px)",
+                            borderLeft: "1px solid var(--border)",
+                            boxShadow: "-20px 0 60px -15px rgba(0,0,0,0.25)",
+                        }}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/30">
-                            <div className="flex items-center gap-2">
-                                <div className="p-1.5 bg-primary/20 text-primary rounded-lg">
-                                    <Bot className="size-4" />
+                        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-border shrink-0">
+                            <div className="flex items-center gap-3">
+                                {/* Reactive Mascot in Header */}
+                                <div className="relative h-14 w-14 shrink-0">
+                                    <AnimatePresence mode="wait">
+                                        <motion.div
+                                            key={mascotState}
+                                            initial={{ opacity: 0, scale: 0.85 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.85 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="absolute inset-0"
+                                        >
+                                            <Image
+                                                src={currentMascot}
+                                                alt={`Mascot ${mascotState}`}
+                                                fill
+                                                className="object-contain drop-shadow-md"
+                                                priority
+                                            />
+                                        </motion.div>
+                                    </AnimatePresence>
                                 </div>
-                                <span className="font-semibold text-sm">Resume.ai Bot</span>
+                                <div>
+                                    <p className="text-sm font-bold text-foreground tracking-tight">Resume AI Assistant</p>
+                                    <p className="text-[10px] text-muted-foreground font-medium">Career Coach & ATS Expert</p>
+                                    <p className="text-[9px] text-emerald-500 font-semibold mt-0.5">● Online · Powered by Gemini</p>
+                                </div>
                             </div>
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                                className="h-8 w-8 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-secondary/60 flex items-center justify-center transition-colors cursor-pointer shrink-0"
                             >
                                 <X className="size-4" />
                             </button>
                         </div>
 
-                        {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                            {messages.map((msg, idx) => (
-                                <div
-                                    key={idx}
-                                    className={`flex items-start gap-2.5 max-w-[85%] ${
-                                        msg.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto"
-                                    }`}
-                                >
-                                    <div
-                                        className={`size-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
-                                            msg.role === "user"
-                                                ? "bg-primary text-primary-foreground"
-                                                : "bg-secondary text-foreground border border-border"
-                                        }`}
-                                    >
-                                        {msg.role === "user" ? <User className="size-3" /> : <Bot className="size-3" />}
-                                    </div>
-                                    <div
-                                        className={`px-3 py-2 rounded-2xl text-xs leading-relaxed whitespace-pre-wrap ${
-                                            msg.role === "user"
-                                                ? "bg-primary text-primary-foreground rounded-tr-sm"
-                                                : "bg-secondary/50 text-foreground border border-border rounded-tl-sm"
-                                        }`}
-                                    >
-                                        {msg.content}
-                                    </div>
+                        {/* Active Resume Banner */}
+                        {activeResume && (
+                            <div className="mx-4 mt-3 px-3 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center gap-2 shrink-0">
+                                <Sparkles className="size-3.5 text-indigo-500 shrink-0" />
+                                <p className="text-[10px] text-indigo-400 font-medium truncate">
+                                    Active context: <span className="text-indigo-300 font-bold">{activeResume.name}</span>
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Messages or Suggested Actions */}
+                        <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4 [scrollbar-width:thin]">
+                            {messages.length === 0 ? (
+                                /* Suggested Actions */
+                                <div className="space-y-3 pt-2">
+                                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-1">Quick Actions</p>
+                                    {SUGGESTED_ACTIONS.map((action) => (
+                                        <button
+                                            key={action.label}
+                                            onClick={() => handleSuggestion(action.message)}
+                                            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-border bg-secondary/40 hover:bg-secondary/70 hover:border-indigo-500/30 text-left transition-all group cursor-pointer"
+                                        >
+                                            <span className="h-7 w-7 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0 group-hover:bg-indigo-500/20 transition-colors">
+                                                {action.icon}
+                                            </span>
+                                            <span className="text-xs font-medium text-foreground/80 group-hover:text-foreground transition-colors">{action.label}</span>
+                                        </button>
+                                    ))}
                                 </div>
-                            ))}
-                            {isTyping && (
-                                <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                                    <Loader2 className="size-3 animate-spin" /> Bot is typing...
-                                </div>
+                            ) : (
+                                /* Chat Messages */
+                                <>
+                                    {messages.map((msg, idx) => (
+                                        <motion.div
+                                            key={idx}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            className={`flex items-end gap-2.5 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                                        >
+                                            {/* Avatar */}
+                                            <div className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 overflow-hidden ${
+                                                msg.role === "user"
+                                                    ? "bg-gradient-to-br from-indigo-500 to-purple-600"
+                                                    : "bg-secondary border border-border"
+                                            }`}>
+                                                {msg.role === "user" ? (
+                                                    <User className="size-3.5 text-white" />
+                                                ) : (
+                                                    <div className="relative h-full w-full">
+                                                        <Image src={mascotIdle} alt="Bot" fill className="object-contain" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {/* Bubble */}
+                                            <div className={`max-w-[78%] px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap ${
+                                                msg.role === "user"
+                                                    ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-2xl rounded-br-sm shadow-md shadow-indigo-500/15"
+                                                    : "bg-secondary/60 text-foreground border border-border rounded-2xl rounded-bl-sm"
+                                            }`}>
+                                                {msg.content}
+                                            </div>
+                                        </motion.div>
+                                    ))}
+
+                                    {/* Typing indicator */}
+                                    {isTyping && (
+                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-end gap-2.5">
+                                            <div className="h-7 w-7 rounded-full bg-secondary border border-border flex items-center justify-center shrink-0 overflow-hidden">
+                                                <div className="relative h-full w-full">
+                                                    <Image src={mascotTyping} alt="Typing" fill className="object-contain" />
+                                                </div>
+                                            </div>
+                                            <div className="px-3.5 py-3 bg-secondary/60 border border-border rounded-2xl rounded-bl-sm flex items-center gap-1.5">
+                                                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "0ms" }} />
+                                                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "150ms" }} />
+                                                <span className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "300ms" }} />
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                    <div ref={messagesEndRef} />
+                                </>
                             )}
-                            <div ref={messagesEndRef} />
                         </div>
 
-                        {/* Input Area */}
-                        <div className="p-3 border-t border-border bg-secondary/10">
+                        {/* Input */}
+                        <div className="p-4 border-t border-border shrink-0">
                             <form
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    handleSend();
-                                }}
-                                className="flex items-center gap-2 bg-card border border-border rounded-xl p-1 pr-2"
+                                onSubmit={(e) => { e.preventDefault(); handleSend(); }}
+                                className="flex items-center gap-2 bg-background/50 border border-border rounded-xl p-1 pr-1.5 focus-within:border-indigo-500/50 focus-within:ring-1 focus-within:ring-indigo-500/20 transition-all"
                             >
                                 <input
+                                    ref={inputRef}
                                     type="text"
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
-                                    placeholder="Ask anything..."
+                                    placeholder="Ask about your career..."
                                     className="flex-1 bg-transparent border-none outline-none text-xs px-3 py-2 text-foreground placeholder:text-muted-foreground"
                                 />
                                 <button
                                     type="submit"
                                     disabled={!input.trim() || isTyping}
-                                    className="p-1.5 bg-primary text-primary-foreground rounded-lg disabled:opacity-50 transition-colors"
+                                    className="h-8 w-8 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-lg flex items-center justify-center disabled:opacity-40 hover:from-indigo-400 hover:to-purple-500 transition-all shadow-sm cursor-pointer"
                                 >
-                                    <Send className="size-3.5" />
+                                    {isTyping ? <Loader2 className="size-3.5 animate-spin" /> : <Send className="size-3.5" />}
                                 </button>
                             </form>
+                            <p className="text-[9px] text-muted-foreground/50 text-center mt-2">Powered by Gemini · Context-aware resume analysis</p>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            <button
+            {/* Floating Mascot Trigger */}
+            <motion.button
                 onClick={() => setIsOpen(!isOpen)}
-                className="h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all"
+                className="fixed bottom-6 right-6 z-50 h-20 w-20 cursor-pointer border-none bg-transparent outline-none p-0"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.92 }}
+                animate={isOpen ? { scale: 0.88 } : { scale: 1 }}
+                transition={{ type: "spring", stiffness: 380, damping: 22 }}
+                aria-label="Open AI Career Assistant"
             >
-                {isOpen ? <X className="size-5" /> : <MessageSquare className="size-5" />}
-            </button>
-        </div>
+                <div className="relative h-full w-full" style={{ filter: isOpen ? "drop-shadow(0 0 8px rgba(99,102,241,0.3))" : "drop-shadow(0 0 14px rgba(99,102,241,0.55)) drop-shadow(0 4px 12px rgba(0,0,0,0.25))" }}>
+                    <Image
+                        src={isOpen ? mascotHappy : mascotIdle}
+                        alt="AI Career Assistant"
+                        fill
+                        className="object-contain"
+                        priority
+                    />
+                </div>
+            </motion.button>
+
+            {/* Floating animation CSS */}
+            <style jsx global>{`
+                @keyframes mascot-float {
+                    0%, 100% { transform: translateY(0px); }
+                    50% { transform: translateY(-8px); }
+                }
+                .mascot-float-wrapper {
+                    animation: mascot-float 3s ease-in-out infinite;
+                }
+            `}</style>
+        </>
     );
 }
