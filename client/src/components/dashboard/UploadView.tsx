@@ -50,7 +50,7 @@ const TypewriterEffect = ({ stepIndex }: { stepIndex: number }) => {
 };
 
 export default function UploadView() {
-    const { uploadResume, isUploading, uploadProgress, setCurrentTab } = useResumeStore();
+    const { uploadResume, isUploading, uploadProgress, uploadStatusText, setCurrentTab } = useResumeStore();
     const [uploadedFile, setUploadedFile] = useState<{ name: string; size: string } | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [error, setError] = useState<string>("");
@@ -230,41 +230,30 @@ export default function UploadView() {
                     </div>
 
                     <div className="py-4 flex flex-col space-y-5 max-w-sm mx-auto w-full">
-                        <div className="flex justify-center mb-2">
+                        <div className="flex flex-col items-center justify-center space-y-4 py-4">
                             <RobotLoader isCompact={true} />
-                        </div>
-                        {AI_STEPS.map((step, index) => {
-                            const currentStepIndex = Math.min(AI_STEPS.length - 1, Math.floor((uploadProgress / 100) * AI_STEPS.length));
-                            const isCompleted = index < currentStepIndex || (index === AI_STEPS.length - 1 && uploadProgress >= 100);
-                            const isActive = index === currentStepIndex && uploadProgress < 100;
-                            const isPending = index > currentStepIndex;
+                            
+                            <div className="flex flex-col items-center space-y-2 mt-4 text-center">
+                                <span className="text-sm font-medium text-foreground">
+                                    {uploadStatusText}
+                                </span>
+                                <span className="text-[10px] text-indigo-500/80 animate-pulse font-medium">Processing stream via SSE...</span>
+                            </div>
 
-                            return (
-                                <div key={index} className={`flex items-center gap-4 transition-all duration-300 ${isPending ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
-                                    <div className="flex-shrink-0 flex items-center justify-center">
-                                        {isCompleted ? (
-                                            <div className="size-5 rounded-full border border-green-500/30 bg-green-500/10 flex items-center justify-center">
-                                                <CheckCircle2 className="size-3.5 text-green-500" />
-                                            </div>
-                                        ) : isActive ? (
-                                            <div className="size-5 rounded-full bg-indigo-500/10 flex items-center justify-center">
-                                                <Loader2 className="size-3.5 text-indigo-500 animate-spin" />
-                                            </div>
-                                        ) : (
-                                            <div className="size-5 rounded-full border border-border" />
-                                        )}
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className={`text-sm font-medium ${isActive ? 'text-foreground' : isCompleted ? 'text-foreground/70' : 'text-muted-foreground'}`}>
-                                            {step}
-                                        </span>
-                                        {isActive && (
-                                            <span className="text-[10px] text-indigo-500/80 animate-pulse font-medium">Processing...</span>
-                                        )}
-                                    </div>
+                            <div className="w-full max-w-xs mt-4">
+                                <div className="h-1.5 w-full bg-secondary overflow-hidden rounded-full border border-border">
+                                    <motion.div 
+                                        className="h-full bg-primary"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${uploadProgress}%` }}
+                                        transition={{ duration: 0.5 }}
+                                    />
                                 </div>
-                            );
-                        })}
+                                <div className="text-right mt-1.5">
+                                    <span className="text-[9px] font-mono text-muted-foreground">{uploadProgress}%</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

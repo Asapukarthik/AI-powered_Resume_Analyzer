@@ -3,7 +3,7 @@ import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const pdfParseMod = require("pdf-parse");
-import Tesseract from "tesseract.js";
+import { GoogleGenAI } from "@google/genai";
 
 async function extractWithPdfParse(buffer) {
     try {
@@ -30,14 +30,40 @@ async function extractWithPdfJs(buffer) {
         return "";
     }
 }
-async function extractWithOCR(buffer) {
+async function extractWithGeminiVision(buffer) {
     try {
-        // Warning: Tesseract cannot directly process PDF buffers without first converting them to images.
-        // If the buffer is a PDF, this will fail. We are returning an empty string to gracefully fall back.
-        console.warn("OCR fallback requires an image format. Skipping OCR for binary document buffer.");
-        return "";
+        console.log("Attempting Gemini Vision OCR fallback...");
+        const ai = new GoogleGenAI({
+            apiKey: process.env.GEMINI_API_KEY,
+        });
+
+        const prompt = `
+You are an expert document parsing AI.
+This document was uploaded as a resume, but standard text extraction failed, suggesting it is a complex graphical or image-based PDF.
+Extract ALL text from this document exactly as it appears. 
+Preserve the logical structure, sections, and ordering of the resume.
+Do NOT add any conversational preamble or markdown formatting. Just return the extracted raw text.
+`;
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: [
+                prompt,
+                {
+                    inlineData: {
+                        data: buffer.toString("base64"),
+                        mimeType: "application/pdf",
+                    }
+                }
+            ],
+            config: {
+                temperature: 0.1,
+            }
+        });
+
+        return response.text || "";
     } catch (e) {
-        console.error("OCR error:", e.message);
+        console.error("Gemini Vision OCR error:", e.message);
         return "";
     }
 }
@@ -66,8 +92,8 @@ export const extractTextFromFile = async (buffer, mimetype, fileName = '') => {
                 }
             }
             if (extractedText.trim().length < 100) {
-                console.log("pdfjs-dist extracted less than 100 chars, trying OCR fallback...");
-                const ocrText = await extractWithOCR(buffer);
+                console.log("pdfjs-dist extracted less than 100 chars, trying Gemini OCR fallback...");
+                const ocrText = await extractWithGeminiVision(buffer);
                 if (ocrText.trim().length > extractedText.trim().length) {
                     extractedText = ocrText;
                 }

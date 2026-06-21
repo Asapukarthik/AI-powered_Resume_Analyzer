@@ -13,7 +13,7 @@ export default function BackgroundParticles() {
         <Particles
             id="tsparticles"
             init={particlesInit}
-            className="absolute inset-0 z-0 pointer-events-none"
+            className="absolute inset-0 z-0 pointer-events-none theme-dark-only"
             options={{
                 fullScreen: {
                     enable: false,

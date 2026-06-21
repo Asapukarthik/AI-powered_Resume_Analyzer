@@ -152,6 +152,32 @@ export const loginUser = async (req, res, next) => {
     }
 };
 
+export const getCurrentUser = async (req, res, next) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            include: { settings: true },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                tier: true,
+                createdAt: true,
+                settings: true
+            }
+        });
+
+        if (!user) {
+            res.status(404);
+            throw new Error('User not found');
+        }
+
+        res.json(user);
+    } catch (error) {
+        next(error);
+    }
+};
+
 export const getMe = async (req, res, next) => {
     try {
         const user = await prisma.user.findUnique({

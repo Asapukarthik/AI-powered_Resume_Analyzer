@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from "recharts";
 import ExportReportButton from "./ExportReportButton";
+import AnimatedCounter from "../ui/AnimatedCounter";
 
 export default function OverviewView() {
     const { resumes, activeResume, setCurrentTab, setActiveResume } = useResumeStore();
@@ -76,7 +77,7 @@ export default function OverviewView() {
                                     </defs>
                                 </svg>
                                 <div className="absolute inset-0 flex items-center justify-center font-bold font-mono text-sm text-foreground">
-                                    {activeResume ? `${activeResume.score}%` : "—"}
+                                    {activeResume ? <AnimatedCounter value={activeResume.score} suffix="%" duration={1.2} /> : "—"}
                                 </div>
                             </div>
                             <p className="text-[10px] text-muted-foreground leading-normal font-sans">Based on active parsed profile.</p>
@@ -93,7 +94,7 @@ export default function OverviewView() {
                         </div>
                         <div className="space-y-2">
                             <span className="text-4xl font-extrabold tracking-tight font-mono text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-                                {activeResume ? `${activeResume.skillsMatch}%` : "—"}
+                                {activeResume ? <AnimatedCounter value={activeResume.skillsMatch} suffix="%" duration={1.2} /> : "—"}
                             </span>
                             <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
                                 <div className="bg-gradient-to-r from-blue-400 to-cyan-400 h-full rounded-full transition-all duration-1000" style={{ width: `${activeResume?.skillsMatch || 0}%` }} />

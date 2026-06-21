@@ -1,5 +1,5 @@
 import express from 'express';
-import { uploadAndAnalyzeResume, getUserResumes, deleteResume } from '../controllers/resumeController.js';
+import { uploadAndAnalyzeResume, getUserResumes, deleteResume, generateCoverLetter, reanalyzeResume } from '../controllers/resumeController.js';
 import { protect } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 import rateLimit from 'express-rate-limit';
@@ -17,5 +17,7 @@ const analysisLimiter = rateLimit({
 router.post('/analyze', protect, analysisLimiter, upload.single('resume'), uploadAndAnalyzeResume);
 router.get('/', protect, getUserResumes);
 router.delete('/:id', protect, deleteResume);
+router.post('/:id/cover-letter', protect, analysisLimiter, generateCoverLetter);
+router.post('/:id/reanalyze', protect, analysisLimiter, reanalyzeResume);
 
 export default router;

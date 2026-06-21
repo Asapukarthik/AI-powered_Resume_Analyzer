@@ -196,3 +196,42 @@ Rules:
     }
   }
 };
+
+export const streamCoverLetter = async (resumeText, jobDescription, res) => {
+  try {
+    const ai = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+    });
+
+    const prompt = `
+You are an expert career coach and executive recruiter.
+Write a highly compelling, professional, and tailored cover letter based on the candidate's resume and the target job description.
+Do not use placeholders like [Company Name] if the information is not available, just write naturally.
+
+JOB DESCRIPTION:
+${jobDescription || "Not provided. Focus on highlighting the resume's strongest points generally."}
+
+RESUME:
+${resumeText}
+
+Return ONLY the text of the cover letter. Format using markdown. Do not include any preamble.
+`;
+
+    const responseStream = await ai.models.generateContentStream({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    for await (const chunk of responseStream) {
+      if (chunk.text) {
+        res.write(`data: ${JSON.stringify({ text: chunk.text })}\n\n`);
+      }
+    }
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (error) {
+    console.error("Cover Letter Streaming Error:", error);
+    res.write(`data: ${JSON.stringify({ error: "Failed to generate cover letter." })}\n\n`);
+    res.end();
+  }
+}

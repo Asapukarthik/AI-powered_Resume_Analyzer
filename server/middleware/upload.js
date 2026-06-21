@@ -4,15 +4,23 @@ import multer from 'multer';
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-    // Only accept PDF and DOCX
-    if (
-        file.mimetype === 'application/pdf' ||
-        file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-        file.mimetype === 'application/msword'
-    ) {
-        cb(null, true);
+    if (file.fieldname === 'avatar') {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only images are allowed for avatars.'), false);
+        }
     } else {
-        cb(new Error('Invalid file type. Only PDF and DOCX files are allowed.'), false);
+        // Only accept PDF and DOCX
+        if (
+            file.mimetype === 'application/pdf' ||
+            file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+            file.mimetype === 'application/msword'
+        ) {
+            cb(null, true);
+        } else {
+            cb(new Error('Invalid file type. Only PDF and DOCX files are allowed.'), false);
+        }
     }
 };
 

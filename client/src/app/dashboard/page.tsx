@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useResumeStore } from "@/hooks/useResumeStore";
 import BackgroundParticles from "@/components/layout/BackgroundParticles";
-import MeshGradientBackground from "@/components/layout/MeshGradientBackground";
+import VercelBackground from "@/components/layout/VercelBackground";
 
 // Import view components
 import OverviewView from "@/components/dashboard/OverviewView";
@@ -15,6 +15,7 @@ import JobMatcherView from "@/components/dashboard/JobMatcherView";
 import InterviewView from "@/components/dashboard/InterviewView";
 import SkillsGapView from "@/components/dashboard/SkillsGapView";
 import SettingsView from "@/components/dashboard/SettingsView";
+import CoverLetterView from "@/components/dashboard/CoverLetterView";
 import AIChatbot from "@/components/dashboard/AIChatbot";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { AnimatePresence, motion } from "framer-motion";
@@ -139,6 +140,7 @@ export default function DashboardPage() {
         { label: "ATS Reports", value: "reports", icon: <Award className="size-4" /> },
         { label: "AI Suggestions", value: "skills", icon: <Sparkles className="size-4" /> },
         { label: "Job Matcher", value: "matcher", icon: <Briefcase className="size-4" /> },
+        { label: "Cover Letter", value: "coverletter", icon: <FileText className="size-4" /> },
         { label: "Interview Prep", value: "interview", icon: <MessageSquare className="size-4" /> },
         { label: "Settings", value: "settings", icon: <Settings className="size-4" /> }
     ];
@@ -183,6 +185,8 @@ export default function DashboardPage() {
                 return <InterviewView />;
             case "skills":
                 return <SkillsGapView />;
+            case "coverletter":
+                return <CoverLetterView />;
             case "settings":
                 return <SettingsView />;
             default:
@@ -206,7 +210,7 @@ export default function DashboardPage() {
 
     return (
         <main className="relative h-screen bg-background text-foreground flex overflow-hidden selection:bg-primary/25">
-            <MeshGradientBackground />
+            <VercelBackground />
             <BackgroundParticles />
 
             {/* --- DESKTOP SIDEBAR NAVIGATION --- */}
@@ -278,8 +282,12 @@ export default function DashboardPage() {
                         onClick={() => { setUserMenuOpen(!userMenuOpen); setNotificationsOpen(false); }}
                         className={`w-full flex items-center hover:bg-secondary/50 rounded-xl transition-all duration-200 cursor-pointer ${isSidebarCollapsed ? "justify-center p-1.5" : "p-2 gap-3"}`}
                     >
-                        <div className="h-8 w-8 rounded-full bg-indigo-600/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 shadow-inner">
-                            {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                        <div className="h-8 w-8 rounded-full bg-indigo-600/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0 shadow-inner overflow-hidden">
+                            {user?.avatar ? (
+                                <img src={user.avatar} alt="Avatar" className="h-full w-full object-cover" />
+                            ) : (
+                                user?.name?.charAt(0)?.toUpperCase() || "U"
+                            )}
                         </div>
                         {!isSidebarCollapsed && (
                             <div className="flex-1 min-w-0 text-left">
@@ -303,6 +311,8 @@ export default function DashboardPage() {
                         <button
                             onClick={() => setMobileMenuOpen(true)}
                             className="p-1.5 rounded-lg border border-border glass-card text-muted-foreground hover:text-foreground cursor-pointer"
+                            aria-label="Open navigation menu"
+                            title="Open menu"
                         >
                             <Menu className="size-4" />
                         </button>
@@ -379,6 +389,8 @@ export default function DashboardPage() {
                             <button
                                 onClick={() => { setNotificationsOpen(!notificationsOpen); setUserMenuOpen(false); }}
                                 className="h-9 w-9 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground flex items-center justify-center relative cursor-pointer hover:bg-secondary/40 transition-colors"
+                                aria-label="View notifications"
+                                title="Notifications"
                             >
                                 <Bell className="size-4" />
                                 <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-rose-500 border border-card ring-1 ring-rose-500/20" />
@@ -454,6 +466,8 @@ export default function DashboardPage() {
                             <button
                                 onClick={() => setMobileMenuOpen(false)}
                                 className="p-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground"
+                                aria-label="Close navigation menu"
+                                title="Close menu"
                             >
                                 <X className="size-4.5" />
                             </button>
@@ -485,8 +499,12 @@ export default function DashboardPage() {
                         {/* Footer User Info inside mobile drawer */}
                         <div className="border-t border-border p-4 space-y-3">
                             <div className="flex items-center gap-3">
-                                <div className="h-8 w-8 rounded-full bg-secondary border border-border flex items-center justify-center font-mono font-bold text-xs text-muted-foreground">
-                                    {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                                <div className="h-8 w-8 rounded-full bg-secondary border border-border flex items-center justify-center font-mono font-bold text-xs text-muted-foreground overflow-hidden">
+                                    {user?.avatar ? (
+                                        <img src={user.avatar} alt="Avatar" className="h-full w-full object-cover" />
+                                    ) : (
+                                        user?.name?.charAt(0)?.toUpperCase() || "U"
+                                    )}
                                 </div>
                                 <div className="min-w-0">
                                     <h4 className="text-[11px] font-semibold text-foreground truncate">{user.name}</h4>

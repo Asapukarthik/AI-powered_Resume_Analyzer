@@ -1,7 +1,7 @@
 import "./globals.css";
 import { Inter, Roboto_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
-import { ResumeProvider } from "@/hooks/useResumeStore";
+
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import { Toaster } from "react-hot-toast";
@@ -45,10 +45,8 @@ export default function RootLayout({
             <body className="bg-background text-foreground antialiased selection:bg-primary/25 selection:text-foreground min-h-screen">
                 <GoogleOAuthProvider clientId={clientId}>
                     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-                        <ResumeProvider>
-                            {children}
-                            <Toaster position="top-right" />
-                        </ResumeProvider>
+                        {children}
+                        <Toaster position="top-right" />
                     </ThemeProvider>
                 </GoogleOAuthProvider>
             </body>

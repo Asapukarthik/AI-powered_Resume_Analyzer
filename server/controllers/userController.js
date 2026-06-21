@@ -1,5 +1,6 @@
 import { prisma } from '../config/prisma.js';
 import bcrypt from 'bcrypt';
+import { uploadToCloudinary, uploadImageToCloudinary } from '../utils/cloudinary.js';
 
 export const updateProfile = async (req, res, next) => {
     try {
@@ -24,7 +25,7 @@ export const updateProfile = async (req, res, next) => {
         const updatedUser = await prisma.user.update({
             where: { id: req.user.id },
             data: dataToUpdate,
-            select: { id: true, name: true, email: true, tier: true }
+            select: { id: true, name: true, email: true, tier: true, avatar: true }
         });
 
         res.json(updatedUser);
@@ -53,6 +54,42 @@ export const updateSettings = async (req, res, next) => {
         });
 
         res.json(updatedSettings);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const uploadAvatar = async (req, res, next) => {
+    try {
+        const file = req.file;
+        if (!file) {
+            res.status(400);
+            throw new Error('Please upload an image file');
+        }
+
+        const cloudinaryUrl = await uploadImageToCloudinary(file.buffer, file.originalname);
+
+        const updatedUser = await prisma.user.update({
+            where: { id: req.user.id },
+            data: { avatar: cloudinaryUrl },
+            select: { id: true, name: true, email: true, tier: true, avatar: true }
+        });
+
+        res.json(updatedUser);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export const deleteAvatar = async (req, res, next) => {
+    try {
+        const updatedUser = await prisma.user.update({
+            where: { id: req.user.id },
+            data: { avatar: null },
+            select: { id: true, name: true, email: true, tier: true, avatar: true }
+        });
+
+        res.json(updatedUser);
     } catch (error) {
         next(error);
     }
