@@ -16,9 +16,44 @@ const robotoMono = Roboto_Mono({
     variable: "--font-mono",
 });
 
-export const metadata = {
-    title: "AI Resume Analyzer",
-    description: "AI-powered ATS Resume Analyzer",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+    metadataBase: new URL(
+        process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"
+    ),
+    title: {
+        default: "Resume.ai — AI-Powered ATS Resume Analyzer",
+        template: "%s | Resume.ai",
+    },
+    description: "Analyze your resume with AI, beat ATS filters, get instant career coaching, and land more interviews. Built for modern job seekers.",
+    keywords: ["resume analyzer", "ATS score", "AI resume", "job search", "career coach", "resume builder"],
+    authors: [{ name: "Resume.ai" }],
+    creator: "Resume.ai",
+    icons: {
+        icon: [
+            { url: "/favicon.png", type: "image/png" },
+            { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+            { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+        ],
+        apple: [
+            { url: "/favicon.png", sizes: "180x180", type: "image/png" },
+        ],
+        shortcut: "/favicon.png",
+    },
+    openGraph: {
+        type: "website",
+        title: "Resume.ai — AI-Powered ATS Resume Analyzer",
+        description: "Analyze your resume with AI, beat ATS filters, get instant career coaching.",
+        siteName: "Resume.ai",
+        images: [{ url: "/icon-512.png", width: 512, height: 512, alt: "Resume.ai" }],
+    },
+    twitter: {
+        card: "summary",
+        title: "Resume.ai — AI-Powered ATS Resume Analyzer",
+        description: "Analyze your resume with AI, beat ATS filters, get instant career coaching.",
+        images: ["/icon-512.png"],
+    },
 };
 
 export default function RootLayout({
@@ -27,11 +62,11 @@ export default function RootLayout({
     children: React.ReactNode;
 }) {
     // Note: We use process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID. Ensure this is set in your .env.local
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
     if (!clientId) {
-        throw new Error(
-            "NEXT_PUBLIC_GOOGLE_CLIENT_ID is missing"
+        console.warn(
+            "Warning: NEXT_PUBLIC_GOOGLE_CLIENT_ID is not set. Google OAuth login will be disabled."
         );
     }
 
