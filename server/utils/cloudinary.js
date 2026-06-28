@@ -10,10 +10,11 @@ cloudinary.config({
 
 export const uploadToCloudinary = (fileBuffer, fileName) => {
     return new Promise((resolve, reject) => {
+        const sanitizedFileName = fileName.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_');
         const uploadStream = cloudinary.uploader.upload_stream(
             {
                 resource_type: 'raw',
-                public_id: `resumes/${Date.now()}_${fileName}`,
+                public_id: `resumes/${Date.now()}_${sanitizedFileName}`,
                 format: 'pdf',
             },
             (error, result) => {

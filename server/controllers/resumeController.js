@@ -49,8 +49,12 @@ export const uploadAndAnalyzeResume = async (req, res) => {
         }
     }, 2500);
 
-    const analysis = await analyzeResume(resumeText, jobDescription);
-    clearInterval(progressInterval);
+    let analysis;
+    try {
+        analysis = await analyzeResume(resumeText, jobDescription);
+    } finally {
+        clearInterval(progressInterval); // Bug 3: always clear regardless of success/failure
+    }
 
     res.write(`data: ${JSON.stringify({ status: "Finalizing and saving database records..." })}\n\n`);
 
@@ -104,7 +108,7 @@ export const uploadAndAnalyzeResume = async (req, res) => {
         suggestions: analysis.atsAnalysis?.recommendations || [],
       },
     });
-    console.log(resumeText.substring(0, 50));
+    // Removed: console.log with raw resume text (PII leak in production logs)
 
     res.write(`data: ${JSON.stringify({
       status: "complete",
@@ -122,11 +126,31 @@ export const uploadAndAnalyzeResume = async (req, res) => {
 
 export const getUserResumes = async (req, res) => {
   try {
-    const resumes = await prisma.resume.findMany({
-      where: { userId: req.user.id },
-      orderBy: { createdAt: 'desc' }
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 10));
+    const skip = (page - 1) * limit;
+
+    const [resumes, total] = await prisma.$transaction([
+      prisma.resume.findMany({
+        where: { userId: req.user.id },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.resume.count({ where: { userId: req.user.id } }),
+    ]);
+
+    res.json({
+      resumes,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNext: page * limit < total,
+        hasPrev: page > 1,
+      },
     });
-    res.json(resumes);
   } catch (error) {
     console.error('Error fetching resumes:', error);
     res.status(500).json({ error: 'Failed to fetch resumes' });
@@ -260,8 +284,12 @@ export const reanalyzeResume = async (req, res) => {
         }
     }, 2500);
 
-    const analysis = await analyzeResume(resumeText, jobDescription);
-    clearInterval(progressInterval);
+    let analysis;
+    try {
+        analysis = await analyzeResume(resumeText, jobDescription);
+    } finally {
+        clearInterval(progressInterval); // always clear interval regardless of success/failure
+    }
 
     res.write(`data: ${JSON.stringify({ status: "Updating database records..." })}\n\n`);
 
@@ -298,15 +326,20 @@ export const reanalyzeResume = async (req, res) => {
     });
 
     if (jobDescription) {
-       // update or create jobMatch
+       // Bug 4: corrected field names to match Prisma schema (matchPercentage, matchedKeywords, suggestions)
        const existingJobMatch = await prisma.jobMatch.findFirst({ where: { resumeId: id } });
+       const matchedKws = analysis.keywords?.matched || [];
+       const missingSkls = analysis.skillGapAnalysis?.missingSkills || [];
+       const suggestions = analysis.atsAnalysis?.recommendations || [];
        if (existingJobMatch) {
           await prisma.jobMatch.update({
              where: { id: existingJobMatch.id },
              data: {
                jobDescription,
-               matchScore: analysis.careerInsights?.marketReadinessScore || 0,
-               matchDetails: analysis.atsAnalysis || {},
+               matchPercentage: analysis.atsAnalysis?.overallScore || 0,
+               matchedKeywords: matchedKws,
+               missingSkills: missingSkls,
+               suggestions,
              }
           });
        } else {
@@ -315,8 +348,10 @@ export const reanalyzeResume = async (req, res) => {
               userId: req.user.id,
               resumeId: id,
               jobDescription,
-              matchScore: analysis.careerInsights?.marketReadinessScore || 0,
-              matchDetails: analysis.atsAnalysis || {},
+              matchPercentage: analysis.atsAnalysis?.overallScore || 0,
+              matchedKeywords: matchedKws,
+              missingSkills: missingSkls,
+              suggestions,
             }
           });
        }

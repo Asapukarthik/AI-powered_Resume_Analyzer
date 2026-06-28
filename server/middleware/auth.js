@@ -15,6 +15,11 @@ export const protect = async (req, res, next) => {
                 select: { id: true, name: true, email: true, tier: true }
             });
 
+            if (!req.user) {
+                res.status(401);
+                return next(new Error('Not authorized, user not found'));
+            }
+
             return next();
         } catch (error) {
             console.error(error);

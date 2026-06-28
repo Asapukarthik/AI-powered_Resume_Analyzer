@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useResumeStore } from "@/hooks/useResumeStore";
-import { 
+import {
     Calendar,
     ArrowUpRight,
     Info
@@ -58,7 +58,7 @@ export default function SkillsGapView() {
             {/* Visual Step-by-Step Roadmap Tree */}
             <div className="space-y-4">
                 <h3 className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">Suggested Career Roadmap</h3>
-                
+
                 <div className="relative border-l border-dashed border-border ml-4 pl-6 space-y-6">
                     {activeResume.suggestedRoadmap.map((step, idx) => (
                         <div key={idx} className="relative group text-left">
@@ -84,45 +84,6 @@ export default function SkillsGapView() {
                                         </span>
                                     ))}
                                 </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* suggested learning resources */}
-            <div className="space-y-4">
-                <h3 className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">Curated Learning Recommendations</h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {[
-                        {
-                            title: "Kubernetes Operator Patterns",
-                            category: "Documentation / Reference",
-                            desc: "Learn to build controller reconcilers to manage custom resources inside clusters.",
-                            src: "Official Kubernetes SDK Guides",
-                            link: "kubernetes.io/docs"
-                        },
-                        {
-                            title: "Terraform State & Backend Locks",
-                            category: "Best Practice Course",
-                            desc: "Master lock strategies, KMS bucket access policies, and modular template drift management.",
-                            src: "HashiCorp Associate Academy",
-                            link: "learn.hashicorp.com"
-                        }
-                    ].map((card, idx) => (
-                        <div key={idx} className="rounded-xl border border-border bg-card p-5 flex flex-col justify-between hover:border-border transition-colors">
-                            <div className="space-y-2">
-                                <span className="text-[9px] font-mono text-muted-foreground uppercase">{card.category}</span>
-                                <h4 className="text-xs font-semibold text-foreground flex items-center gap-1">
-                                    {card.title}
-                                    <ArrowUpRight className="size-3 text-muted-foreground" />
-                                </h4>
-                                <p className="text-[11px] text-muted-foreground leading-relaxed">{card.desc}</p>
-                            </div>
-                            <div className="mt-5 pt-3 border-t border-border flex justify-between items-center text-[9px] font-mono text-muted-foreground">
-                                <span>Source: {card.src}</span>
-                                <span className="text-primary hover:underline cursor-pointer">{card.link}</span>
                             </div>
                         </div>
                     ))}

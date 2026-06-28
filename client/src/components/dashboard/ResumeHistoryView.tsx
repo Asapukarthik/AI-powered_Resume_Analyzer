@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useResumeStore } from "@/hooks/useResumeStore";
 import { 
     Search, 
@@ -9,14 +9,38 @@ import {
     FileText, 
     Loader2, 
     SlidersHorizontal,
-    Calendar
+    Calendar,
+    ChevronLeft,
+    ChevronRight
 } from "lucide-react";
 
 export default function ResumeHistoryView() {
-    const { resumes, activeResume, setActiveResume, deleteResume, reanalyzeResume, setCurrentTab } = useResumeStore();
+    const { 
+        resumes, 
+        activeResume, 
+        setActiveResume, 
+        deleteResume, 
+        reanalyzeResume, 
+        setCurrentTab,
+        fetchResumes,
+        resumesPagination
+    } = useResumeStore();
+    
     const [searchQuery, setSearchQuery] = useState("");
     const [scoreFilter, setScoreFilter] = useState<"all" | "high" | "mid" | "low">("all");
     const [reanalyzingId, setReanalyzingId] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        setIsLoading(true);
+        fetchResumes(1, 10).finally(() => setIsLoading(false));
+    }, []);
+
+    const handlePageChange = async (newPage: number) => {
+        setIsLoading(true);
+        await fetchResumes(newPage, 10);
+        setIsLoading(false);
+    };
 
     const handleSelect = (id: string) => {
         const res = resumes.find(r => r.id === id);
@@ -200,6 +224,31 @@ export default function ResumeHistoryView() {
                     <p className="text-xs text-muted-foreground mt-1 max-w-[260px] leading-relaxed">
                         Refine filter criteria parameters or search query terms.
                     </p>
+                </div>
+            )}
+
+            {/* Pagination Controls */}
+            {resumesPagination && resumesPagination.totalPages > 1 && (
+                <div className="flex items-center justify-between border-t border-border pt-5">
+                    <p className="text-[10px] text-muted-foreground font-mono">
+                        Showing page {resumesPagination.page} of {resumesPagination.totalPages} ({resumesPagination.total} total scans)
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => handlePageChange(resumesPagination.page - 1)}
+                            disabled={!resumesPagination.hasPrev || isLoading}
+                            className="h-8 px-3 rounded-lg border border-border bg-secondary flex items-center justify-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:border-neutral-700 disabled:opacity-40 transition-all cursor-pointer"
+                        >
+                            <ChevronLeft className="size-3.5" /> Previous
+                        </button>
+                        <button
+                            onClick={() => handlePageChange(resumesPagination.page + 1)}
+                            disabled={!resumesPagination.hasNext || isLoading}
+                            className="h-8 px-3 rounded-lg border border-border bg-secondary flex items-center justify-center gap-1 text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:border-neutral-700 disabled:opacity-40 transition-all cursor-pointer"
+                        >
+                            Next <ChevronRight className="size-3.5" />
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

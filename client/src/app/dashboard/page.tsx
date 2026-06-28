@@ -57,7 +57,8 @@ export default function DashboardPage() {
         user,
         updateUser,
         updateSettings,
-        clearStore
+        clearStore,
+        setAvatar
     } = useResumeStore();
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -92,6 +93,11 @@ export default function DashboardPage() {
                 const data = await res.json();
                 if (!mounted) return;
                 updateUser(data.name, data.email);
+
+                // Bug 6 fix: Sync avatar from backend on every page load
+                if (data.avatar) {
+                    setAvatar(data.avatar);
+                }
 
                 if (data.settings) {
                     updateSettings({

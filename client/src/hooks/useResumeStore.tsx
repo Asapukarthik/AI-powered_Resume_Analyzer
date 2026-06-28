@@ -94,12 +94,21 @@ interface ResumeStoreState {
     setIsUploading: (val: boolean) => void;
     setUploadProgress: (val: number) => void;
     setUploadStatusText: (text: string) => void;
-    fetchResumes: () => Promise<void>;
+    fetchResumes: (page?: number, limit?: number) => Promise<void>;
+    resumesPagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+        hasNext: boolean;
+        hasPrev: boolean;
+    };
     uploadResume: (file: File, jobDescription: string) => Promise<ResumeData>;
     deleteResume: (id: string) => Promise<void>;
     reanalyzeResume: (id: string) => Promise<void>;
     user: UserProfile;
     updateUser: (name: string, email: string) => void;
+    setAvatar: (url: string) => void;
     uploadAvatar: (file: File) => Promise<void>;
     deleteAvatar: () => Promise<void>;
     settings: AppSettings;
@@ -165,6 +174,7 @@ export const useResumeStore = create<ResumeStoreState>()(
                 tier: "Professional Plan"
             },
             updateUser: (name, email) => set((state) => ({ user: { ...state.user, name, email } })),
+            setAvatar: (url) => set((state) => ({ user: { ...state.user, avatar: url } })),
             uploadAvatar: async (file: File) => {
                 const token = localStorage.getItem("token");
                 if (!token) return;
@@ -214,18 +224,45 @@ export const useResumeStore = create<ResumeStoreState>()(
             },
             updateSettings: (newSettings) => set((state) => ({ settings: { ...state.settings, ...newSettings } })),
 
-            fetchResumes: async () => {
+            resumesPagination: {
+                page: 1,
+                limit: 10,
+                total: 0,
+                totalPages: 1,
+                hasNext: false,
+                hasPrev: false,
+            },
+
+            fetchResumes: async (page = 1, limit = 10) => {
                 try {
                     const token = localStorage.getItem("token");
                     if (!token) return;
 
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resumes`, {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/resumes?page=${page}&limit=${limit}`, {
                         headers: { "Authorization": `Bearer ${token}` }
                     });
 
                     if (res.ok) {
-                        const data = await res.json();
-                        const mappedResumes: ResumeData[] = data.map((r: BackendResume) => ({
+                        const json = await res.json();
+                        // Handle both old flat array and new paginated format
+                        const rawResumes = Array.isArray(json) ? json : (json.resumes || []);
+                        const pagination = Array.isArray(json) ? {
+                            page: 1,
+                            limit: rawResumes.length,
+                            total: rawResumes.length,
+                            totalPages: 1,
+                            hasNext: false,
+                            hasPrev: false
+                        } : (json.pagination || {
+                            page: 1,
+                            limit,
+                            total: rawResumes.length,
+                            totalPages: 1,
+                            hasNext: false,
+                            hasPrev: false
+                        });
+
+                        const mappedResumes: ResumeData[] = rawResumes.map((r: BackendResume) => ({
                             id: r.id,
                             name: r.name,
                             date: new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
@@ -247,7 +284,7 @@ export const useResumeStore = create<ResumeStoreState>()(
                             recruiterView: r.recruiterView || null,
                         }));
 
-                        set({ resumes: mappedResumes });
+                        set({ resumes: mappedResumes, resumesPagination: pagination });
                         
                         // Only set active resume if one doesn't exist, to preserve user's view across refreshes
                         const currentActive = get().activeResume;
@@ -355,6 +392,10 @@ export const useResumeStore = create<ResumeStoreState>()(
 
                 } catch (error) {
                     set({ isUploading: false, uploadProgress: 0, uploadStatusText: "Failed." });
+                    // Priority 1 #4: surface upload errors as toast messages
+                    const { default: toast } = await import('react-hot-toast');
+                    const msg = error instanceof Error ? error.message : 'Upload failed. Please try again.';
+                    toast.error(msg, { id: 'upload-error', duration: 5000 });
                     throw error;
                 }
             },
