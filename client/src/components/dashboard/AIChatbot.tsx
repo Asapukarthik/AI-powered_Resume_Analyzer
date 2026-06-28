@@ -6,17 +6,17 @@ import { useResumeStore } from "@/hooks/useResumeStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, Loader2, User, Sparkles, Target, TrendingUp, Mic, Search, Map } from "lucide-react";
 
-// Mascot image imports
-import mascotIdle from "@/assets/mascot-idle.png";
-import mascotHappy from "@/assets/mascot-happy.png";
-import mascotThinking from "@/assets/mascot-thinking.png";
-import mascotTyping from "@/assets/mascot-typing.png";
-import mascotConfused from "@/assets/mascot-confused.png";
-import mascotLoading from "@/assets/mascot-loading.png";
+// Mascot image paths (served from /public/assets/)
+const mascotIdle = "/assets/mascot-idle.png";
+const mascotHappy = "/assets/mascot-happy.png";
+const mascotThinking = "/assets/mascot-thinking.png";
+const mascotTyping = "/assets/mascot-typing.png";
+const mascotConfused = "/assets/mascot-confused.png";
+const mascotLoading = "/assets/mascot-loading.png";
 
 type MascotState = "idle" | "thinking" | "typing" | "happy" | "confused" | "loading";
 
-const mascotMap: Record<MascotState, typeof mascotIdle> = {
+const mascotMap: Record<MascotState, string> = {
     idle: mascotIdle,
     happy: mascotHappy,
     thinking: mascotThinking,
@@ -285,34 +285,31 @@ export default function AIChatbot() {
             {/* Floating Mascot Trigger */}
             <motion.button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed bottom-6 right-6 z-50 h-20 w-20 cursor-pointer border-none bg-transparent outline-none p-0"
+                className="fixed bottom-6 right-6 z-50 h-20 w-20 cursor-pointer border-none bg-transparent outline-none p-0 mascot-float-idle"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.92 }}
                 animate={isOpen ? { scale: 0.88 } : { scale: 1 }}
                 transition={{ type: "spring", stiffness: 380, damping: 22 }}
                 aria-label="Open AI Career Assistant"
             >
-                <div className="relative h-full w-full" style={{ filter: isOpen ? "drop-shadow(0 0 8px rgba(99,102,241,0.3))" : "drop-shadow(0 0 14px rgba(99,102,241,0.55)) drop-shadow(0 4px 12px rgba(0,0,0,0.25))" }}>
+                <div
+                    className="relative h-20 w-20"
+                    style={{
+                        filter: isOpen
+                            ? "drop-shadow(0 0 8px rgba(99,102,241,0.3))"
+                            : "drop-shadow(0 0 14px rgba(99,102,241,0.55)) drop-shadow(0 4px 12px rgba(0,0,0,0.25))"
+                    }}
+                >
                     <Image
                         src={isOpen ? mascotHappy : mascotIdle}
                         alt="AI Career Assistant"
-                        fill
-                        className="object-contain"
+                        width={80}
+                        height={80}
+                        className="object-contain w-full h-full"
                         priority
                     />
                 </div>
             </motion.button>
-
-            {/* Floating animation CSS */}
-            <style jsx global>{`
-                @keyframes mascot-float {
-                    0%, 100% { transform: translateY(0px); }
-                    50% { transform: translateY(-8px); }
-                }
-                .mascot-float-wrapper {
-                    animation: mascot-float 3s ease-in-out infinite;
-                }
-            `}</style>
         </>
     );
 }
