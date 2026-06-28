@@ -2,13 +2,14 @@
 
 import React, { useState } from "react";
 import { useResumeStore } from "@/hooks/useResumeStore";
-import { Info, FileText, Send, Loader2 } from "lucide-react";
+import { Info, FileText, Send, Loader2, Bold, Italic, Heading2, List, Sparkles, Copy, Check, CheckSquare } from "lucide-react";
 
 export default function CoverLetterView() {
     const { activeResume, setCurrentTab } = useResumeStore();
     const [jobDescription, setJobDescription] = useState("");
     const [coverLetter, setCoverLetter] = useState("");
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
 
     if (!activeResume) {
         return (
@@ -85,6 +86,13 @@ export default function CoverLetterView() {
         }
     };
 
+    const handleCopy = () => {
+        if (!coverLetter) return;
+        navigator.clipboard.writeText(coverLetter);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+    };
+
     return (
         <div className="space-y-6 text-left max-w-5xl mx-auto py-2 h-full flex flex-col">
             <div className="flex items-center justify-between">
@@ -94,10 +102,10 @@ export default function CoverLetterView() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 min-h-[500px]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-[550px] items-stretch">
                 {/* Input Column */}
-                <div className="flex flex-col space-y-4">
-                    <div className="rounded-xl border border-border bg-card p-4 flex flex-col flex-1">
+                <div className="lg:col-span-4 flex flex-col space-y-4">
+                    <div className="rounded-xl border border-border bg-card p-4 flex flex-col flex-1 shadow-sm">
                         <label className="text-xs font-semibold text-foreground mb-2 flex items-center gap-2">
                             <FileText className="size-4 text-primary" /> Target Job Description
                         </label>
@@ -105,12 +113,12 @@ export default function CoverLetterView() {
                             value={jobDescription}
                             onChange={(e) => setJobDescription(e.target.value)}
                             placeholder="Paste the job description here..."
-                            className="w-full flex-1 bg-background border border-border rounded-lg p-3 text-sm text-foreground focus:ring-1 focus:ring-primary outline-none resize-none min-h-[200px]"
+                            className="w-full flex-1 bg-background border border-border rounded-lg p-3 text-xs text-foreground focus:ring-1 focus:ring-primary outline-none resize-none min-h-[250px]"
                         />
                         <button 
                             onClick={generateCoverLetter}
                             disabled={isGenerating || !jobDescription.trim()}
-                            className="mt-4 btn-primary w-full py-2.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="mt-4 btn-primary w-full py-2.5 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-xs"
                         >
                             {isGenerating ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
                             {isGenerating ? "Generating..." : "Generate Cover Letter"}
@@ -118,17 +126,53 @@ export default function CoverLetterView() {
                     </div>
                 </div>
 
-                {/* Output Column */}
-                <div className="rounded-xl border border-border bg-card p-6 flex flex-col overflow-hidden relative">
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-4 border-b border-border pb-2">Generated Output</h3>
-                    
-                    <div className="flex-1 overflow-y-auto pr-2 font-serif text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">
-                        {coverLetter ? coverLetter : (
-                            <div className="h-full flex items-center justify-center text-muted-foreground/50 text-xs text-center">
-                                Your generated cover letter will appear here.<br/>You can copy it directly once finished.
-                            </div>
+                {/* Output Column: Notion-style Editor */}
+                <div className="lg:col-span-8 flex flex-col relative group">
+                    <div className="flex-1 flex flex-col rounded-xl border border-border bg-muted/30 p-8 overflow-hidden relative shadow-inner">
+                        
+                        {/* Notion-style Document Page */}
+                        <div className="flex-1 bg-card border border-border/80 rounded-lg p-10 font-serif text-xs leading-relaxed text-foreground/90 whitespace-pre-wrap overflow-y-auto shadow-sm max-w-2xl w-full mx-auto relative select-text">
+                            
+                            {/* Floating Formatting Toolbar (appears on hover) */}
+                            {coverLetter && (
+                                <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2.5 py-1 rounded-full border border-border bg-card/90 backdrop-blur-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10 select-none">
+                                    <button className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer" title="Bold"><Bold className="size-3" /></button>
+                                    <button className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer" title="Italic"><Italic className="size-3" /></button>
+                                    <button className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer" title="Heading"><Heading2 className="size-3" /></button>
+                                    <button className="p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground cursor-pointer" title="List"><List className="size-3" /></button>
+                                    <div className="w-px h-4 bg-border mx-1" />
+                                    <button className="p-1 rounded hover:bg-secondary text-primary hover:text-primary-foreground flex items-center gap-0.5 text-[9px] font-semibold cursor-pointer" title="AI Polish">
+                                        <Sparkles className="size-2.5" /> Polish
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Document Text */}
+                            {coverLetter ? coverLetter : (
+                                <div className="h-full flex flex-col items-center justify-center text-muted-foreground/40 text-xs text-center font-sans space-y-2 select-none">
+                                    <FileText className="size-8 stroke-[1.5]" />
+                                    <p>Your generated cover letter will appear here.</p>
+                                    <p className="text-[10px]">Provide a job description and click generate to begin.</p>
+                                </div>
+                            )}
+                            {isGenerating && <span className="inline-block w-1.5 h-4 ml-1 bg-primary animate-pulse align-middle" />}
+                        </div>
+
+                        {/* Copy Floating Badge (appears on hover) */}
+                        {coverLetter && (
+                            <button
+                                onClick={handleCopy}
+                                className={`absolute bottom-12 right-12 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold shadow-md transition-all duration-200 opacity-0 group-hover:opacity-100 cursor-pointer ${
+                                    isCopied 
+                                        ? "bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500/20" 
+                                        : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-secondary"
+                                }`}
+                            >
+                                {isCopied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+                                {isCopied ? "Copied!" : "Copy Document"}
+                            </button>
                         )}
-                        {isGenerating && <span className="inline-block w-1.5 h-4 ml-1 bg-primary animate-pulse align-middle" />}
+
                     </div>
                 </div>
             </div>

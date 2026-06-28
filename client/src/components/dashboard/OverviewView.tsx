@@ -9,14 +9,32 @@ import {
     ArrowUpRight,
     ArrowDownRight,
     Minus,
-    Calendar
+    Calendar,
+    Award,
+    BrainCircuit,
+    Tag,
+    AlertTriangle,
+    Sparkles
 } from "lucide-react";
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from "recharts";
 import ExportReportButton from "./ExportReportButton";
 import AnimatedCounter from "../ui/AnimatedCounter";
+import confetti from "canvas-confetti";
 
 export default function OverviewView() {
     const { resumes, activeResume, setCurrentTab, setActiveResume } = useResumeStore();
+    const [firedConfettiFor, setFiredConfettiFor] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        if (activeResume && activeResume.score >= 80 && firedConfettiFor !== activeResume.id) {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+            setFiredConfettiFor(activeResume.id);
+        }
+    }, [activeResume, firedConfettiFor]);
 
     const handleSelectResume = (id: string) => {
         const selected = resumes.find(r => r.id === id);
@@ -25,6 +43,11 @@ export default function OverviewView() {
             setCurrentTab("reports");
         }
     };
+
+    const score = activeResume?.score || 0;
+    const skillsMatch = activeResume?.skillsMatch || 0;
+    const matchedCount = activeResume ? activeResume.matchedKeywords : 0;
+    const missingCount = activeResume ? activeResume.missingKeywords : 0;
 
     return (
         <div className="space-y-10 text-left max-w-7xl mx-auto py-2">
@@ -40,7 +63,7 @@ export default function OverviewView() {
                     )}
                     <button
                         onClick={() => setCurrentTab("upload")}
-                        className="self-start sm:self-center h-10 px-5 rounded-lg bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs font-bold transition-all shadow-lg hover:shadow-indigo-500/25 flex items-center gap-2 hover:-translate-y-0.5"
+                        className="self-start sm:self-center h-10 px-5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold transition-all shadow-lg hover:shadow-indigo-500/25 flex items-center gap-2 hover:-translate-y-0.5"
                     >
                         <Plus className="size-4" />
                         New Scan
@@ -51,88 +74,130 @@ export default function OverviewView() {
             <div id="report-container" className="space-y-10">
                 {/* Quick Metrics Grid */}
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    {/* Metric 1 */}
-                    <div className="rounded-xl glass-card glass-card-hover p-8 space-y-4">
-                        <div className="flex items-center justify-between text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
-                            <span>ATS Compliance</span>
-                            <span className="flex items-center gap-0.5 text-green-400 font-bold font-sans">
+                    {/* Metric 1: ATS Compliance */}
+                    <div className={`rounded-xl glass-card glass-card-hover p-6 space-y-4 relative overflow-hidden transition-all ${
+                        score >= 80 ? "border-emerald-500/20 bg-gradient-to-b from-card to-emerald-500/5" : ""
+                    }`}>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className={`p-2 rounded-lg ${score >= 80 ? "bg-emerald-500/10 text-emerald-500" : "bg-blue-500/10 text-blue-500"}`}>
+                                    <Award className="size-4" />
+                                </div>
+                                <span className="text-xs font-semibold text-foreground/80">ATS Score</span>
+                            </div>
+                            <span className={`flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                score >= 80 ? "bg-emerald-500/10 text-emerald-500" : "bg-blue-500/10 text-blue-500"
+                            }`}>
                                 <ArrowUpRight className="size-3" /> +4%
                             </span>
                         </div>
+                        
                         <div className="flex items-center gap-4">
                             <div className="relative size-16 shrink-0">
                                 <svg className="size-full -rotate-90">
-                                    <circle cx="32" cy="32" r="28" stroke="currentColor" strokeWidth="6" fill="none" className="text-secondary" />
+                                    <circle cx="32" cy="32" r="28" stroke="var(--border)" strokeWidth="5.5" fill="none" />
                                     <circle
-                                        cx="32" cy="32" r="28" stroke="url(#atsGradient)" strokeWidth="6" fill="none"
+                                        cx="32" cy="32" r="28" 
+                                        stroke={score >= 80 ? "var(--color-chart-2)" : "var(--primary)"} 
+                                        strokeWidth="5.5" fill="none"
                                         strokeDasharray={2 * Math.PI * 28}
-                                        strokeDashoffset={2 * Math.PI * 28 - ((activeResume?.score || 0) / 100) * (2 * Math.PI * 28)}
-                                        className="transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(139,92,246,0.5)]"
+                                        strokeDashoffset={2 * Math.PI * 28 - (score / 100) * (2 * Math.PI * 28)}
+                                        className="transition-all duration-1000 ease-out"
                                     />
-                                    <defs>
-                                        <linearGradient id="atsGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="#8b5cf6" />
-                                            <stop offset="100%" stopColor="#6366f1" />
-                                        </linearGradient>
-                                    </defs>
                                 </svg>
-                                <div className="absolute inset-0 flex items-center justify-center font-bold font-mono text-sm text-foreground">
-                                    {activeResume ? <AnimatedCounter value={activeResume.score} suffix="%" duration={1.2} /> : "—"}
+                                <div className="absolute inset-0 flex items-center justify-center font-bold font-mono text-xs text-foreground">
+                                    {activeResume ? <AnimatedCounter value={score} suffix="%" duration={1.2} /> : "—"}
                                 </div>
                             </div>
-                            <p className="text-[10px] text-muted-foreground leading-normal font-sans">Based on active parsed profile.</p>
+                            <div className="space-y-0.5">
+                                <p className="text-[11px] font-medium text-foreground/90">
+                                    {score >= 80 ? "Excellent Profile" : score >= 60 ? "Average Rating" : activeResume ? "Action Required" : "No Profile"}
+                                </p>
+                                <p className="text-[10px] text-muted-foreground leading-normal">
+                                    {score >= 80 ? "Ready for submission." : score >= 60 ? "Improve details." : activeResume ? "Critically low." : "Run a file scan."}
+                                </p>
+                            </div>
                         </div>
+
+                        {/* Gold Premium Badge overlay */}
+                        {score >= 80 && (
+                            <div className="absolute top-2 right-2 flex items-center gap-1 bg-amber-500/15 border border-amber-500/20 text-amber-500 text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(245,158,11,0.2)] animate-pulse">
+                                <Sparkles className="size-2.5 fill-amber-500" /> Premium
+                            </div>
+                        )}
                     </div>
 
-                    {/* Metric 2 */}
-                    <div className="rounded-xl glass-card glass-card-hover p-8 space-y-4">
-                        <div className="flex items-center justify-between text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
-                            <span>Skills Matching</span>
-                            <span className="flex items-center gap-0.5 text-muted-foreground font-bold font-sans">
+                    {/* Metric 2: Skills Match */}
+                    <div className="rounded-xl glass-card glass-card-hover p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
+                                    <BrainCircuit className="size-4" />
+                                </div>
+                                <span className="text-xs font-semibold text-foreground/80">Skills Match</span>
+                            </div>
+                            <span className="flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">
                                 <Minus className="size-3" /> Stable
                             </span>
                         </div>
                         <div className="space-y-2">
-                            <span className="text-4xl font-extrabold tracking-tight font-mono text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-400">
-                                {activeResume ? <AnimatedCounter value={activeResume.skillsMatch} suffix="%" duration={1.2} /> : "—"}
-                            </span>
+                            <div className="flex justify-between items-baseline">
+                                <span className="text-3xl font-extrabold tracking-tight font-mono text-foreground">
+                                    {activeResume ? <AnimatedCounter value={skillsMatch} suffix="%" duration={1.2} /> : "—"}
+                                </span>
+                                <span className="text-[10px] font-mono text-muted-foreground">Target Role Compatibility</span>
+                            </div>
                             <div className="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
-                                <div className="bg-gradient-to-r from-blue-400 to-cyan-400 h-full rounded-full transition-all duration-1000" style={{ width: `${activeResume?.skillsMatch || 0}%` }} />
+                                <div className="bg-indigo-500 h-full rounded-full transition-all duration-1000" style={{ width: `${skillsMatch}%` }} />
                             </div>
                         </div>
-                        <p className="text-[10px] text-muted-foreground leading-normal mt-2">Overall compatibility rating.</p>
+                        <p className="text-[10px] text-muted-foreground leading-normal">
+                            {skillsMatch >= 75 ? "Excellent matching keywords." : activeResume ? "Some key skills missing." : "Awaiting analysis."}
+                        </p>
                     </div>
 
-                    {/* Metric 3 */}
-                    <div className="rounded-xl glass-card glass-card-hover p-8 space-y-4">
-                        <div className="flex items-center justify-between text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
-                            <span>Matched Keywords</span>
-                            <span className="flex items-center gap-0.5 text-green-400 font-bold font-sans">
+                    {/* Metric 3: Matched Keywords */}
+                    <div className="rounded-xl glass-card glass-card-hover p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
+                                    <Tag className="size-4" />
+                                </div>
+                                <span className="text-xs font-semibold text-foreground/80">Matched Keywords</span>
+                            </div>
+                            <span className="flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500">
                                 <ArrowUpRight className="size-3" /> +2
                             </span>
                         </div>
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-4xl font-extrabold tracking-tight font-mono text-foreground">
-                                {activeResume ? activeResume.matchedKeywords : "0"}
-                            </span>
+                        <div className="space-y-1">
+                            <div className="text-3xl font-extrabold tracking-tight font-mono text-foreground">
+                                {activeResume ? matchedCount : "—"}
+                            </div>
+                            <p className="text-[11px] font-medium text-foreground/90">Parameters Identified</p>
+                            <p className="text-[10px] text-muted-foreground leading-normal">Strong overlap with technical tags.</p>
                         </div>
-                        <p className="text-[10px] text-muted-foreground leading-normal">Identified parameter tags.</p>
                     </div>
 
-                    {/* Metric 4 */}
-                    <div className="rounded-xl glass-card glass-card-hover p-8 space-y-4">
-                        <div className="flex items-center justify-between text-muted-foreground text-[10px] uppercase font-mono tracking-wider">
-                            <span>Missing Gaps</span>
-                            <span className="flex items-center gap-0.5 text-red-400 font-bold font-sans">
+                    {/* Metric 4: Missing Gaps */}
+                    <div className="rounded-xl glass-card glass-card-hover p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <div className="p-2 rounded-lg bg-amber-500/10 text-amber-500">
+                                    <AlertTriangle className="size-4" />
+                                </div>
+                                <span className="text-xs font-semibold text-foreground/80">Missing Gaps</span>
+                            </div>
+                            <span className="flex items-center gap-0.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500">
                                 <ArrowDownRight className="size-3" /> -3
                             </span>
                         </div>
-                        <div className="flex items-baseline gap-2">
-                            <span className="text-4xl font-extrabold tracking-tight font-mono text-foreground">
-                                {activeResume ? activeResume.missingKeywords : "0"}
-                            </span>
+                        <div className="space-y-1">
+                            <div className="text-3xl font-extrabold tracking-tight font-mono text-foreground">
+                                {activeResume ? missingCount : "—"}
+                            </div>
+                            <p className="text-[11px] font-medium text-foreground/90">Critical Gaps Detected</p>
+                            <p className="text-[10px] text-muted-foreground leading-normal">Add missing skills to improve rating.</p>
                         </div>
-                        <p className="text-[10px] text-muted-foreground leading-normal">Required credentials gaps.</p>
                     </div>
                 </div>
 

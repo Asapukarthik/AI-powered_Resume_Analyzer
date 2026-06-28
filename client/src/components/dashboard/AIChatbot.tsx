@@ -4,7 +4,9 @@ import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useResumeStore } from "@/hooks/useResumeStore";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, Loader2, User, Sparkles, Target, TrendingUp, Mic, Search, Map } from "lucide-react";
+import { X, Send, Loader2, User, Sparkles, Target, TrendingUp, Mic, Search, Map, Copy, Check, Trash2, Download } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 // Mascot image paths (served from /public/assets/)
 const mascotIdle = "/assets/mascot-idle.png";
@@ -39,6 +41,7 @@ export default function AIChatbot() {
     const [input, setInput] = useState("");
     const [isTyping, setIsTyping] = useState(false);
     const [mascotState, setMascotState] = useState<MascotState>("idle");
+    const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -51,6 +54,38 @@ export default function AIChatbot() {
             setTimeout(() => inputRef.current?.focus(), 300);
         }
     }, [messages, isOpen]);
+
+    // Load from local storage on mount
+    useEffect(() => {
+        const saved = localStorage.getItem("resume_ai_chat_history");
+        if (saved) {
+            try {
+                setMessages(JSON.parse(saved));
+            } catch (e) {
+                console.error("Failed to parse chat history");
+            }
+        }
+    }, []);
+
+    // Save to local storage when messages change
+    useEffect(() => {
+        localStorage.setItem("resume_ai_chat_history", JSON.stringify(messages));
+    }, [messages]);
+
+    // Global Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && isOpen) {
+                setIsOpen(false);
+            }
+            if (e.ctrlKey && e.key === "/") {
+                e.preventDefault();
+                setIsOpen((prev) => !prev);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isOpen]);
 
     useEffect(() => {
         return () => { if (resetTimerRef.current) clearTimeout(resetTimerRef.current); };
@@ -77,7 +112,7 @@ export default function AIChatbot() {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                body: JSON.stringify({ message: userMsg, resumeId: activeResume?.id || null })
+                body: JSON.stringify({ message: userMsg, history: messages, resumeId: activeResume?.id || null })
             });
             setMascotState("typing");
             const data = await res.json();
@@ -93,6 +128,32 @@ export default function AIChatbot() {
 
     const handleSend = () => sendMessage(input);
     const handleSuggestion = (msg: string) => sendMessage(msg);
+
+    const handleCopy = (text: string, index: number) => {
+        navigator.clipboard.writeText(text);
+        setCopiedIndex(index);
+        setTimeout(() => setCopiedIndex(null), 2000);
+    };
+
+    const handleClearChat = () => {
+        if (confirm("Are you sure you want to clear the chat history?")) {
+            setMessages([]);
+        }
+    };
+
+    const handleExport = () => {
+        if (messages.length === 0) return;
+        const textContent = messages.map(m => `${m.role === 'user' ? 'You' : 'Resume.ai Bot'}:\n${m.content}\n\n`).join('---\n\n');
+        const blob = new Blob([textContent], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `chat-export-${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
 
     const currentMascot = mascotMap[mascotState];
 
@@ -161,12 +222,29 @@ export default function AIChatbot() {
                                     <p className="text-[9px] text-emerald-500 font-semibold mt-0.5">● Online · Powered by Gemini</p>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setIsOpen(false)}
-                                className="h-8 w-8 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-secondary/60 flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                            >
-                                <X className="size-4" />
-                            </button>
+                            <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                    onClick={handleExport}
+                                    title="Export Chat"
+                                    className="h-7 w-7 rounded-lg border border-transparent text-muted-foreground hover:text-foreground hover:bg-secondary/60 flex items-center justify-center transition-colors cursor-pointer"
+                                >
+                                    <Download className="size-3.5" />
+                                </button>
+                                <button
+                                    onClick={handleClearChat}
+                                    title="Clear Chat"
+                                    className="h-7 w-7 rounded-lg border border-transparent text-muted-foreground hover:text-red-400 hover:bg-red-500/10 flex items-center justify-center transition-colors cursor-pointer"
+                                >
+                                    <Trash2 className="size-3.5" />
+                                </button>
+                                <button
+                                    onClick={() => setIsOpen(false)}
+                                    title="Close (Esc)"
+                                    className="h-7 w-7 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-secondary/60 flex items-center justify-center transition-colors cursor-pointer ml-1"
+                                >
+                                    <X className="size-4" />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Active Resume Banner */}
@@ -224,12 +302,45 @@ export default function AIChatbot() {
                                                 )}
                                             </div>
                                             {/* Bubble */}
-                                            <div className={`max-w-[78%] px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap ${
-                                                msg.role === "user"
-                                                    ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-2xl rounded-br-sm shadow-md shadow-indigo-500/15"
-                                                    : "bg-secondary/60 text-foreground border border-border rounded-2xl rounded-bl-sm"
-                                            }`}>
-                                                {msg.content}
+                                            <div className="relative group max-w-[78%]">
+                                                <div className={`px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap ${
+                                                    msg.role === "user"
+                                                        ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-2xl rounded-br-sm shadow-md shadow-indigo-500/15"
+                                                        : "bg-secondary/60 text-foreground border border-border rounded-2xl rounded-bl-sm"
+                                                }`}>
+                                                    {msg.role === "user" ? (
+                                                        msg.content
+                                                    ) : (
+                                                        <ReactMarkdown 
+                                                            remarkPlugins={[remarkGfm]}
+                                                            components={{
+                                                                p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                                                                ul: ({node, ...props}) => <ul className="list-disc pl-4 mb-2 space-y-1" {...props} />,
+                                                                ol: ({node, ...props}) => <ol className="list-decimal pl-4 mb-2 space-y-1" {...props} />,
+                                                                li: ({node, ...props}) => <li className="pl-1" {...props} />,
+                                                                h3: ({node, ...props}) => <h3 className="text-[13px] font-bold mt-3 mb-1.5 text-indigo-100" {...props} />,
+                                                                h4: ({node, ...props}) => <h4 className="font-semibold mt-2 mb-1 text-indigo-200" {...props} />,
+                                                                strong: ({node, ...props}) => <strong className="font-bold text-indigo-300" {...props} />,
+                                                                code: ({node, inline, ...props}: any) => inline 
+                                                                    ? <code className="bg-black/30 px-1.5 py-0.5 rounded text-[11px] font-mono text-indigo-300" {...props} />
+                                                                    : <code className="block bg-black/40 p-2.5 rounded-lg text-[11px] font-mono text-muted-foreground overflow-x-auto mb-2 border border-white/5" {...props} />,
+                                                            }}
+                                                        >
+                                                            {msg.content}
+                                                        </ReactMarkdown>
+                                                    )}
+                                                </div>
+                                                
+                                                {/* Copy Button (only for bot) */}
+                                                {msg.role === "bot" && (
+                                                    <button
+                                                        onClick={() => handleCopy(msg.content, idx)}
+                                                        className={`absolute -right-8 top-1/2 -translate-y-1/2 p-1.5 rounded-md border border-border bg-secondary/80 text-muted-foreground hover:text-foreground shadow-sm transition-all opacity-0 group-hover:opacity-100 ${copiedIndex === idx ? 'text-green-400 border-green-500/30 bg-green-500/10' : ''}`}
+                                                        title="Copy message"
+                                                    >
+                                                        {copiedIndex === idx ? <Check className="size-3" /> : <Copy className="size-3" />}
+                                                    </button>
+                                                )}
                                             </div>
                                         </motion.div>
                                     ))}

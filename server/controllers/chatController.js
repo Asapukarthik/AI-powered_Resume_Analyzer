@@ -3,7 +3,7 @@ import { prisma } from '../config/prisma.js';
 
 export const chatWithAI = async (req, res, next) => {
     try {
-        const { message, resumeId } = req.body;
+        const { message, history = [], resumeId } = req.body;
 
         if (!message) {
             return res.status(400).json({ error: "Message is required" });
@@ -24,22 +24,28 @@ export const chatWithAI = async (req, res, next) => {
             apiKey: process.env.GEMINI_API_KEY,
         });
 
-        const prompt = `
+        const systemInstruction = `
 You are an expert technical recruiter, career advisor, and AI assistant named Resume.ai Bot.
 Your goal is to answer the user's career and resume-related questions.
 You have the following context about the user's current resume:
 ${resumeContext}
 
-User Message:
-${message}
-
 Respond directly, concisely, and professionally. Use markdown formatting if needed. Do not output JSON, just output the response text.
 `;
 
+        const formattedHistory = history.map(msg => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }]
+        }));
+
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash",
-            contents: prompt,
+            contents: [
+                ...formattedHistory,
+                { role: "user", parts: [{ text: message }] }
+            ],
             config: {
+                systemInstruction: systemInstruction,
                 temperature: 0.7,
             },
         });

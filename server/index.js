@@ -16,6 +16,7 @@ import { validateEnv } from "./config/env.js";
 validateEnv();
 
 const app = express();
+app.set('trust proxy', 1); // Trust Render's reverse proxy for rate limiting
 const port = process.env.PORT || 3001;
 
 app.use(
